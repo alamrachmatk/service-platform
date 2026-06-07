@@ -16,14 +16,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _loading = false;
 
   static const _methods = [
-    _PaymentMethod(id: 'qris',    label: 'QRIS',          icon: Icons.qr_code_rounded,          color: Color(0xFF1565C0)),
-    _PaymentMethod(id: 'gopay',   label: 'GoPay',         icon: Icons.account_balance_wallet_rounded, color: Color(0xFF00AED6)),
-    _PaymentMethod(id: 'ovo',     label: 'OVO',           icon: Icons.account_balance_wallet_rounded, color: Color(0xFF4C3494)),
-    _PaymentMethod(id: 'dana',    label: 'DANA',          icon: Icons.account_balance_wallet_rounded, color: Color(0xFF118EEA)),
-    _PaymentMethod(id: 'bca',     label: 'Transfer BCA',  icon: Icons.account_balance_rounded,   color: Color(0xFF005BAA)),
-    _PaymentMethod(id: 'mandiri', label: 'Transfer Mandiri', icon: Icons.account_balance_rounded, color: Color(0xFF003D7A)),
-    _PaymentMethod(id: 'bni',     label: 'Transfer BNI',  icon: Icons.account_balance_rounded,   color: Color(0xFFE57200)),
-    _PaymentMethod(id: 'cod',     label: 'Bayar di Tempat (COD)', icon: Icons.payments_rounded,  color: Color(0xFF43A047)),
+    _PaymentMethod(id: 'qris',    label: 'QRIS',               icon: Icons.qr_code_rounded,               color: Color(0xFF1565C0)),
+    _PaymentMethod(id: 'gopay',   label: 'GoPay',              icon: Icons.account_balance_wallet_rounded, color: Color(0xFF00AED6)),
+    _PaymentMethod(id: 'ovo',     label: 'OVO',                icon: Icons.account_balance_wallet_rounded, color: Color(0xFF4C3494)),
+    _PaymentMethod(id: 'dana',    label: 'DANA',               icon: Icons.account_balance_wallet_rounded, color: Color(0xFF118EEA)),
+    _PaymentMethod(id: 'bca',     label: 'Transfer BCA',       icon: Icons.account_balance_rounded,        color: Color(0xFF005BAA)),
+    _PaymentMethod(id: 'mandiri', label: 'Transfer Mandiri',   icon: Icons.account_balance_rounded,        color: Color(0xFF003D7A)),
+    _PaymentMethod(id: 'bni',     label: 'Transfer BNI',       icon: Icons.account_balance_rounded,        color: Color(0xFFE57200)),
+    _PaymentMethod(id: 'cod',     label: 'Bayar di Tempat (COD)', icon: Icons.payments_rounded,            color: Color(0xFF43A047)),
   ];
 
   Future<void> _pay() async {
@@ -39,8 +39,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     await Future.delayed(const Duration(seconds: 2));
     setState(() => _loading = false);
     if (!mounted) return;
-
-    // Tampilkan dialog sukses
     await _showSuccessDialog();
   }
 
@@ -56,7 +54,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             Container(
               width: 72, height: 72,
               decoration: const BoxDecoration(
-                color: Color(0xFFE8F5E9), shape: BoxShape.circle),
+                  color: Color(0xFFE8F5E9), shape: BoxShape.circle),
               child: const Icon(Icons.check_circle_rounded,
                   color: AppColors.success, size: 44),
             ),
@@ -112,6 +110,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     final o = widget.order;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -132,80 +131,76 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Container(height: 1, color: AppColors.border),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── Ringkasan order ──
-            _OrderSummaryCard(order: o),
-            const SizedBox(height: 20),
-
-            // ── Pilih metode ──
-            const Text('Pilih Metode Pembayaran',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary)),
-            const SizedBox(height: 6),
-            const Text('Dana tersimpan aman sampai pekerjaan selesai (escrow)',
-                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            const SizedBox(height: 12),
-
-            // ── E-wallet ──
-            _MethodGroup(
-              groupLabel: 'Dompet Digital',
-              methods: _methods.where((m) =>
-                  ['qris','gopay','ovo','dana'].contains(m.id)).toList(),
-              selected: _selectedMethod,
-              onSelect: (id) => setState(() => _selectedMethod = id),
+      body: Stack(
+        children: [
+          // ── Konten scrollable ──
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(20, 20, 20, 100 + bottomPadding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _OrderSummaryCard(order: o),
+                const SizedBox(height: 20),
+                const Text('Pilih Metode Pembayaran',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary)),
+                const SizedBox(height: 6),
+                const Text('Dana tersimpan aman sampai pekerjaan selesai (escrow)',
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                const SizedBox(height: 12),
+                _MethodGroup(
+                  groupLabel: 'Dompet Digital',
+                  methods: _methods.where((m) =>
+                      ['qris', 'gopay', 'ovo', 'dana'].contains(m.id)).toList(),
+                  selected: _selectedMethod,
+                  onSelect: (id) => setState(() => _selectedMethod = id),
+                ),
+                const SizedBox(height: 12),
+                _MethodGroup(
+                  groupLabel: 'Transfer Bank',
+                  methods: _methods.where((m) =>
+                      ['bca', 'mandiri', 'bni'].contains(m.id)).toList(),
+                  selected: _selectedMethod,
+                  onSelect: (id) => setState(() => _selectedMethod = id),
+                ),
+                const SizedBox(height: 12),
+                _MethodGroup(
+                  groupLabel: 'Lainnya',
+                  methods: _methods.where((m) => m.id == 'cod').toList(),
+                  selected: _selectedMethod,
+                  onSelect: (id) => setState(() => _selectedMethod = id),
+                ),
+                if (_selectedMethod == 'qris') ...[
+                  const SizedBox(height: 16),
+                  _QrisInfo(amount: o.price),
+                ],
+                if (['bca', 'mandiri', 'bni'].contains(_selectedMethod)) ...[
+                  const SizedBox(height: 16),
+                  _VaInfo(bank: _selectedMethod!, amount: o.price),
+                ],
+              ],
             ),
-            const SizedBox(height: 12),
+          ),
 
-            // ── Transfer bank ──
-            _MethodGroup(
-              groupLabel: 'Transfer Bank',
-              methods: _methods.where((m) =>
-                  ['bca','mandiri','bni'].contains(m.id)).toList(),
-              selected: _selectedMethod,
-              onSelect: (id) => setState(() => _selectedMethod = id),
+          // ── Fixed bottom bar ──
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: _PaymentBottomBar(
+              total: o.formattedPrice,
+              loading: _loading,
+              onPressed: _pay,
+              bottomPadding: bottomPadding,
             ),
-            const SizedBox(height: 12),
-
-            // ── COD ──
-            _MethodGroup(
-              groupLabel: 'Lainnya',
-              methods: _methods.where((m) => m.id == 'cod').toList(),
-              selected: _selectedMethod,
-              onSelect: (id) => setState(() => _selectedMethod = id),
-            ),
-
-            // ── Keterangan QRIS ──
-            if (_selectedMethod == 'qris') ...[
-              const SizedBox(height: 16),
-              _QrisInfo(amount: o.price),
-            ],
-
-            // ── Keterangan VA ──
-            if (['bca','mandiri','bni'].contains(_selectedMethod)) ...[
-              const SizedBox(height: 16),
-              _VaInfo(bank: _selectedMethod!, amount: o.price),
-            ],
-
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-
-      // ── Bottom bar ──
-      bottomNavigationBar: _PaymentBottomBar(
-        total: o.formattedPrice,
-        loading: _loading,
-        onPressed: _pay,
+          ),
+        ],
       ),
     );
   }
 }
 
-// ── Widget helpers ──
+// ─────────────────────────────────────────────
+// WIDGET HELPERS
+// ─────────────────────────────────────────────
 
 class _PaymentMethod {
   final String id, label;
@@ -223,9 +218,11 @@ class _OrderSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border, width: 0.5)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 0.5),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Ringkasan Pesanan',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
@@ -246,8 +243,7 @@ class _OrderSummaryCard extends StatelessWidget {
         const Divider(height: 20),
         _SummaryRow(label: 'Jadwal',
             value: '${order.formattedDate} • ${order.formattedTime}'),
-        _SummaryRow(label: 'Alamat',
-            value: order.address, maxLines: 2),
+        _SummaryRow(label: 'Alamat', value: order.address, maxLines: 2),
         const Divider(height: 16),
         _SummaryRow(label: 'Biaya layanan',
             value: order.formattedPrice, isBold: true,
@@ -269,24 +265,21 @@ class _SummaryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 90,
-            child: Text(label, style: const TextStyle(
-                fontSize: 12, color: AppColors.textSecondary)),
-          ),
-          Expanded(child: Text(value,
-              maxLines: maxLines,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
-                color: valueColor ?? AppColors.textPrimary,
-              ))),
-        ],
-      ),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(
+          width: 90,
+          child: Text(label, style: const TextStyle(
+              fontSize: 12, color: AppColors.textSecondary)),
+        ),
+        Expanded(child: Text(value,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+              color: valueColor ?? AppColors.textPrimary,
+            ))),
+      ]),
     );
   }
 }
@@ -306,27 +299,28 @@ class _MethodGroup extends StatelessWidget {
           fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
       const SizedBox(height: 8),
       Container(
-        decoration: BoxDecoration(color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.border, width: 0.5)),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.border, width: 0.5),
+        ),
         child: Column(
           children: List.generate(methods.length, (i) {
             final m = methods[i];
             final isSelected = selected == m.id;
             final isLast = i == methods.length - 1;
-
             return GestureDetector(
               onTap: () => onSelect(m.id),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 13),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primary.withOpacity(0.04)
                       : Colors.transparent,
-                  border: !isLast ? const Border(
-                    bottom: BorderSide(color: AppColors.border, width: 0.5),
-                  ) : null,
+                  border: !isLast
+                      ? const Border(bottom: BorderSide(
+                          color: AppColors.border, width: 0.5))
+                      : null,
                 ),
                 child: Row(children: [
                   Container(
@@ -377,7 +371,6 @@ class _QrisInfo extends StatelessWidget {
         border: Border.all(color: const Color(0xFF1565C0).withOpacity(0.2)),
       ),
       child: Column(children: [
-        // Simulasi QR code
         Container(
           width: 140, height: 140,
           decoration: BoxDecoration(
@@ -399,13 +392,12 @@ class _QrisInfo extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         const SizedBox(height: 8),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.timer_outlined, size: 14, color: AppColors.error),
-          const Text(' Berlaku selama ',
+        const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+          Icon(Icons.timer_outlined, size: 14, color: AppColors.error),
+          Text(' Berlaku selama ',
               style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          const Text('15:00',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700,
-                  color: AppColors.error)),
+          Text('15:00', style: TextStyle(fontSize: 12,
+              fontWeight: FontWeight.w700, color: AppColors.error)),
         ]),
       ]),
     );
@@ -419,10 +411,10 @@ class _VaInfo extends StatelessWidget {
 
   String get _bankName {
     switch (bank) {
-      case 'bca': return 'BCA';
+      case 'bca':     return 'BCA';
       case 'mandiri': return 'Mandiri';
-      case 'bni': return 'BNI';
-      default: return bank.toUpperCase();
+      case 'bni':     return 'BNI';
+      default:        return bank.toUpperCase();
     }
   }
 
@@ -473,13 +465,14 @@ class _PaymentBottomBar extends StatelessWidget {
   final String total;
   final bool loading;
   final VoidCallback onPressed;
+  final double bottomPadding;
   const _PaymentBottomBar({required this.total, required this.loading,
-      required this.onPressed});
+      required this.onPressed, required this.bottomPadding});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + bottomPadding),
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),

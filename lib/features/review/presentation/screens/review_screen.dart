@@ -122,55 +122,52 @@ class _ReviewScreenState extends State<ReviewScreen> {
           child: Container(height: 1, color: AppColors.border),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(children: [
-          // ── Ringkasan layanan yang direview ──
-          _OrderSummaryCard(order: widget.order),
-          const SizedBox(height: 20),
-
-          // ── Rating bintang ──
-          _RatingCard(
-            rating: _rating,
-            label: _ratingLabel,
-            labelColor: _ratingColor,
-            onRate: (r) => setState(() => _rating = r),
+      body: Stack(
+        children: [
+          // ── Konten scrollable ──
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+            child: Column(children: [
+              _OrderSummaryCard(order: widget.order),
+              const SizedBox(height: 20),
+              _RatingCard(
+                rating: _rating,
+                label: _ratingLabel,
+                labelColor: _ratingColor,
+                onRate: (r) => setState(() => _rating = r),
+              ),
+              const SizedBox(height: 16),
+              if (_rating > 0) ...[
+                _TagsCard(
+                  tags: _quickTags,
+                  selected: _selectedTags,
+                  onToggle: (tag) => setState(() {
+                    _selectedTags.contains(tag)
+                        ? _selectedTags.remove(tag)
+                        : _selectedTags.add(tag);
+                  }),
+                ),
+                const SizedBox(height: 16),
+              ],
+              _WriteReviewCard(controller: _reviewCtrl),
+              const SizedBox(height: 16),
+              _PhotoUploadCard(),
+              const SizedBox(height: 16),
+              _TipCard(controller: _tipCtrl),
+              const SizedBox(height: 100),
+            ]),
           ),
-          const SizedBox(height: 16),
 
-          // ── Quick tags ──
-          if (_rating > 0) ...[
-            _TagsCard(
-              tags: _quickTags,
-              selected: _selectedTags,
-              onToggle: (tag) => setState(() {
-                _selectedTags.contains(tag)
-                    ? _selectedTags.remove(tag)
-                    : _selectedTags.add(tag);
-              }),
+          // ── Fixed bottom bar ──
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: _ReviewBottomBar(
+              rating: _rating,
+              loading: _loading,
+              onSubmit: _submit,
             ),
-            const SizedBox(height: 16),
-          ],
-
-          // ── Tulis ulasan ──
-          _WriteReviewCard(controller: _reviewCtrl),
-          const SizedBox(height: 16),
-
-          // ── Foto hasil kerja ──
-          _PhotoUploadCard(),
-          const SizedBox(height: 16),
-
-          // ── Tip untuk mitra ──
-          _TipCard(controller: _tipCtrl),
-          const SizedBox(height: 100),
-        ]),
-      ),
-
-      // ── Bottom bar ──
-      bottomNavigationBar: _ReviewBottomBar(
-        rating: _rating,
-        loading: _loading,
-        onSubmit: _submit,
+          ),
+        ],
       ),
     );
   }

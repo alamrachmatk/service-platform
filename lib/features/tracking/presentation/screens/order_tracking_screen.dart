@@ -51,37 +51,35 @@ class OrderTrackingScreen extends StatelessWidget {
           child: Container(height: 1, color: AppColors.border),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(children: [
-          // ── ID & info order ──
-          _OrderIdCard(order: order),
-          const SizedBox(height: 16),
+      body: Stack(
+        children: [
+          // ── Konten scrollable ──
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+            child: Column(children: [
+              _OrderIdCard(order: order),
+              const SizedBox(height: 16),
+              _MapPlaceholder(status: order.status),
+              const SizedBox(height: 16),
+              if (order.status == OrderStatus.onTheWay ||
+                  order.status == OrderStatus.inProgress) ...[
+                _MitraInfoCard(order: order),
+                const SizedBox(height: 16),
+              ],
+              _TimelineCard(steps: _steps, currentStep: _currentStep),
+              const SizedBox(height: 16),
+              _DetailCard(order: order),
+              const SizedBox(height: 20),
+            ]),
+          ),
 
-          // ── Peta simulasi ──
-          _MapPlaceholder(status: order.status),
-          const SizedBox(height: 16),
-
-          // ── Info mitra ──
-          if (order.status == OrderStatus.onTheWay ||
-              order.status == OrderStatus.inProgress)
-            _MitraInfoCard(order: order),
-          if (order.status == OrderStatus.onTheWay ||
-              order.status == OrderStatus.inProgress)
-            const SizedBox(height: 16),
-
-          // ── Timeline progress ──
-          _TimelineCard(steps: _steps, currentStep: _currentStep),
-          const SizedBox(height: 16),
-
-          // ── Detail pesanan ──
-          _DetailCard(order: order),
-          const SizedBox(height: 20),
-        ]),
+          // ── Fixed bottom bar ──
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: _TrackingBottomBar(order: order),
+          ),
+        ],
       ),
-
-      // ── Bottom: tombol chat / selesai ──
-      bottomNavigationBar: _TrackingBottomBar(order: order),
     );
   }
 }
