@@ -14,133 +14,10 @@ class ServiceDetailScreen extends StatefulWidget {
 class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
   bool _isFavorite = false;
 
-  @override
-  Widget build(BuildContext context) {
-    final s = widget.service;
+  ServiceModel get s => widget.service;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // ── App bar dengan hero image ──
-          SliverAppBar(
-            expandedHeight: 220,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            leading: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(Icons.arrow_back_ios_rounded,
-                    size: 18, color: AppColors.textPrimary),
-              ),
-            ),
-            actions: [
-              GestureDetector(
-                onTap: () => setState(() => _isFavorite = !_isFavorite),
-                child: Container(
-                  margin: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      size: 18,
-                      color: _isFavorite ? Colors.red : AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryLight],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Center(
-                  child: Text(s.emoji,
-                      style: const TextStyle(fontSize: 80)),
-                ),
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ── Info utama ──
-                  _ServiceHeader(service: s),
-                  const SizedBox(height: 20),
-
-                  // ── Stats ──
-                  _StatsRow(service: s),
-                  const SizedBox(height: 20),
-
-                  // ── Deskripsi ──
-                  _Section(
-                    title: 'Tentang Layanan',
-                    child: Text(s.description,
-                        style: const TextStyle(fontSize: 14,
-                            color: AppColors.textSecondary, height: 1.6)),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Yang termasuk ──
-                  _Section(
-                    title: 'Yang Termasuk',
-                    child: Column(
-                      children: _includedItems(s.category)
-                          .map((item) => _CheckItem(label: item))
-                          .toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Profil mitra ──
-                  _Section(
-                    title: 'Tentang Mitra',
-                    child: _MitraCard(service: s),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // ── Ulasan ──
-                  _Section(
-                    title: 'Ulasan Pelanggan (${s.reviewCount})',
-                    child: Column(
-                      children: _dummyReviews
-                          .map((r) => _ReviewItem(review: r))
-                          .toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-
-      // ── Bottom CTA ──
-      bottomNavigationBar: _BottomCta(service: s),
-    );
-  }
-
-  List<String> _includedItems(String category) {
-    switch (category) {
+  List<String> get _includedItems {
+    switch (s.category) {
       case 'Laundry':
         return ['Cuci dengan detergen premium', 'Setrika rapi', 'Lipat pakaian', 'Antar jemput (radius 3 km)'];
       case 'Elektronik':
@@ -156,16 +33,229 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
     }
   }
 
-  static const _dummyReviews = [
-    (name: 'Budi S.', rating: 5.0, date: '2 hari lalu',
-     comment: 'Sangat memuaskan! Mitra datang tepat waktu dan hasil kerja rapi.'),
-    (name: 'Ani R.', rating: 4.5, date: '1 minggu lalu',
-     comment: 'Pelayanan bagus, harga sesuai. Akan pesan lagi.'),
-    (name: 'Doni P.', rating: 5.0, date: '2 minggu lalu',
-     comment: 'Profesional dan bersih. Sangat rekomendasikan!'),
+  static const _reviews = [
+    (name: 'Budi S.',  rating: 5.0, date: '2 hari lalu',   comment: 'Sangat memuaskan! Mitra datang tepat waktu dan hasil kerja rapi.'),
+    (name: 'Ani R.',   rating: 4.5, date: '1 minggu lalu', comment: 'Pelayanan bagus, harga sesuai. Akan pesan lagi.'),
+    (name: 'Doni P.',  rating: 5.0, date: '2 minggu lalu', comment: 'Profesional dan bersih. Sangat rekomendasikan!'),
   ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Stack(
+        children: [
+          // ── Konten scrollable ──
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Hero banner ──
+                _HeroBanner(
+                  service: s,
+                  isFavorite: _isFavorite,
+                  onBack: () => Navigator.pop(context),
+                  onFavorite: () => setState(() => _isFavorite = !_isFavorite),
+                ),
+
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Judul & lokasi ──
+                      _ServiceHeader(service: s),
+                      const SizedBox(height: 16),
+
+                      // ── Stats (rating, ulasan, order, harga) ──
+                      _StatsRow(service: s),
+                      const SizedBox(height: 16),
+
+                      // ── Deskripsi ──
+                      _SectionTitle(title: 'Tentang Layanan'),
+                      const SizedBox(height: 8),
+                      Text(s.description,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                              height: 1.6)),
+                      const SizedBox(height: 16),
+
+                      // ── Yang termasuk ──
+                      _SectionTitle(title: 'Yang Termasuk'),
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.border, width: 0.5),
+                        ),
+                        child: Column(
+                          children: _includedItems
+                              .map((item) => _CheckItem(label: item))
+                              .toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ── Profil mitra ──
+                      _SectionTitle(title: 'Tentang Mitra'),
+                      const SizedBox(height: 8),
+                      _MitraCard(service: s),
+                      const SizedBox(height: 16),
+
+                      // ── Ulasan ──
+                      _SectionTitle(title: 'Ulasan Pelanggan (${s.reviewCount})'),
+                      const SizedBox(height: 8),
+                      Column(
+                        children: _reviews
+                            .map((r) => _ReviewItem(review: r))
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Fixed bottom CTA ──
+          Positioned(
+            left: 0, right: 0, bottom: 0,
+            child: _BottomCta(service: s),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
+// ─────────────────────────────────────────────
+// HERO BANNER
+// ─────────────────────────────────────────────
+class _HeroBanner extends StatelessWidget {
+  final ServiceModel service;
+  final bool isFavorite;
+  final VoidCallback onBack;
+  final VoidCallback onFavorite;
+
+  const _HeroBanner({
+    required this.service,
+    required this.isFavorite,
+    required this.onBack,
+    required this.onFavorite,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 220,
+      width: double.infinity,
+      color: AppColors.primary,
+      child: Stack(
+        children: [
+          // Background gradient
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryLight],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+          ),
+          // Dekorasi lingkaran
+          Positioned(
+            right: -30, top: -30,
+            child: Container(
+              width: 160, height: 160,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.06),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Positioned(
+            left: -20, bottom: -40,
+            child: Container(
+              width: 130, height: 130,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.04),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          // Emoji layanan
+          Center(
+            child: Text(service.emoji,
+                style: const TextStyle(fontSize: 80)),
+          ),
+          // Tombol back
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            left: 12,
+            child: GestureDetector(
+              onTap: onBack,
+              child: Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.arrow_back_ios_rounded,
+                    size: 16, color: AppColors.textPrimary),
+              ),
+            ),
+          ),
+          // Tombol favorit
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 8,
+            right: 12,
+            child: GestureDetector(
+              onTap: onFavorite,
+              child: Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  isFavorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  size: 18,
+                  color: isFavorite ? Colors.red : AppColors.textPrimary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// SECTION TITLE
+// ─────────────────────────────────────────────
+class _SectionTitle extends StatelessWidget {
+  final String title;
+  const _SectionTitle({required this.title});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(title,
+        style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary));
+  }
+}
+
+// ─────────────────────────────────────────────
+// SERVICE HEADER
+// ─────────────────────────────────────────────
 class _ServiceHeader extends StatelessWidget {
   final ServiceModel service;
   const _ServiceHeader({required this.service});
@@ -173,7 +263,6 @@ class _ServiceHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Badge kategori
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
@@ -181,24 +270,32 @@ class _ServiceHeader extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(service.category,
-            style: const TextStyle(fontSize: 12, color: AppColors.primary,
+            style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.primary,
                 fontWeight: FontWeight.w600)),
       ),
       const SizedBox(height: 8),
       Text(service.name,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700,
+          style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
               color: AppColors.textPrimary)),
-      const SizedBox(height: 6),
+      const SizedBox(height: 4),
       Row(children: [
         const Icon(Icons.location_on_outlined,
             size: 14, color: AppColors.textHint),
         Text(' ${service.distanceKm} km dari lokasi kamu',
-            style: const TextStyle(fontSize: 13, color: AppColors.textHint)),
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textHint)),
       ]),
     ]);
   }
 }
 
+// ─────────────────────────────────────────────
+// STATS ROW
+// ─────────────────────────────────────────────
 class _StatsRow extends StatelessWidget {
   final ServiceModel service;
   const _StatsRow({required this.service});
@@ -206,7 +303,7 @@ class _StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
@@ -219,28 +316,33 @@ class _StatsRow extends StatelessWidget {
           value: service.rating.toString(),
           label: 'Rating',
         ),
-        _Divider(),
+        _VerticalDivider(),
         _StatItem(
           icon: Icons.people_outline_rounded,
           iconColor: AppColors.primary,
           value: '${service.reviewCount}',
           label: 'Ulasan',
         ),
-        _Divider(),
+        _VerticalDivider(),
         _StatItem(
           icon: Icons.check_circle_outline_rounded,
           iconColor: AppColors.success,
           value: '${service.reviewCount * 3}+',
           label: 'Order',
         ),
-        _Divider(),
-        Column(children: [
-          Text(service.formattedPrice,
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700,
-                  color: AppColors.primary)),
-          Text('/${service.priceUnit}',
-              style: const TextStyle(fontSize: 11, color: AppColors.textHint)),
-        ]),
+        _VerticalDivider(),
+        Expanded(
+          child: Column(children: [
+            Text(service.formattedPrice,
+                style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary)),
+            Text('/${service.priceUnit}',
+                style: const TextStyle(
+                    fontSize: 11, color: AppColors.textHint)),
+          ]),
+        ),
       ]),
     );
   }
@@ -250,46 +352,45 @@ class _StatItem extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
   final String value, label;
-  const _StatItem({required this.icon, required this.iconColor,
-      required this.value, required this.label});
+  const _StatItem({
+    required this.icon,
+    required this.iconColor,
+    required this.value,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(child: Column(children: [
-      Icon(icon, color: iconColor, size: 20),
-      const SizedBox(height: 4),
-      Text(value, style: const TextStyle(fontSize: 14,
-          fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-      Text(label, style: const TextStyle(fontSize: 11,
-          color: AppColors.textSecondary)),
-    ]));
+    return Expanded(
+      child: Column(children: [
+        Icon(icon, color: iconColor, size: 20),
+        const SizedBox(height: 4),
+        Text(value,
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary)),
+        Text(label,
+            style: const TextStyle(
+                fontSize: 11, color: AppColors.textSecondary)),
+      ]),
+    );
   }
 }
 
-class _Divider extends StatelessWidget {
+class _VerticalDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(width: 0.5, height: 40, color: AppColors.border,
+    return Container(
+        width: 0.5, height: 40,
+        color: AppColors.border,
         margin: const EdgeInsets.symmetric(horizontal: 4));
   }
 }
 
-class _Section extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _Section({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: const TextStyle(fontSize: 16,
-          fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-      const SizedBox(height: 12),
-      child,
-    ]);
-  }
-}
-
+// ─────────────────────────────────────────────
+// CHECK ITEM
+// ─────────────────────────────────────────────
 class _CheckItem extends StatelessWidget {
   final String label;
   const _CheckItem({required this.label});
@@ -297,25 +398,31 @@ class _CheckItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: Row(children: [
         Container(
-          width: 20, height: 20,
+          width: 22, height: 22,
           decoration: BoxDecoration(
             color: AppColors.primary.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.check_rounded,
-              size: 12, color: AppColors.primary),
+              size: 13, color: AppColors.primary),
         ),
-        const SizedBox(width: 10),
-        Text(label, style: const TextStyle(fontSize: 14,
-            color: AppColors.textPrimary)),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(label,
+              style: const TextStyle(
+                  fontSize: 14, color: AppColors.textPrimary)),
+        ),
       ]),
     );
   }
 }
 
+// ─────────────────────────────────────────────
+// MITRA CARD
+// ─────────────────────────────────────────────
 class _MitraCard extends StatelessWidget {
   final ServiceModel service;
   const _MitraCard({required this.service});
@@ -330,8 +437,9 @@ class _MitraCard extends StatelessWidget {
         border: Border.all(color: AppColors.border, width: 0.5),
       ),
       child: Row(children: [
+        // Avatar
         Container(
-          width: 52, height: 52,
+          width: 48, height: 48,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [AppColors.primary, AppColors.primaryLight],
@@ -339,38 +447,56 @@ class _MitraCard extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Center(
-            child: Text(service.mitra[0],
-                style: const TextStyle(fontSize: 20,
-                    fontWeight: FontWeight.w700, color: Colors.white)),
+            child: Text(
+              service.mitra[0].toUpperCase(),
+              style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
+            ),
           ),
         ),
-        const SizedBox(width: 14),
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(children: [
-              Text(service.mitra, style: const TextStyle(fontSize: 14,
-                  fontWeight: FontWeight.w700)),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
+        const SizedBox(width: 12),
+        // Info
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(children: [
+                Text(service.mitra,
+                    style: const TextStyle(
+                        fontSize: 14, fontWeight: FontWeight.w700)),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text('Terverifikasi',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.success,
+                          fontWeight: FontWeight.w600)),
                 ),
-                child: const Text('Terverifikasi',
-                    style: TextStyle(fontSize: 10, color: AppColors.success,
-                        fontWeight: FontWeight.w600)),
-              ),
-            ]),
-            const SizedBox(height: 4),
-            Row(children: [
-              const Icon(Icons.star_rounded, color: AppColors.secondary, size: 13),
-              Text(' ${service.rating}  •  ${service.reviewCount} ulasan  •  ${service.distanceKm} km',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-            ]),
-          ],
-        )),
+              ]),
+              const SizedBox(height: 4),
+              Row(children: [
+                const Icon(Icons.star_rounded,
+                    color: AppColors.secondary, size: 13),
+                Text(
+                  ' ${service.rating}  •  '
+                  '${service.reviewCount} ulasan  •  '
+                  '${service.distanceKm} km',
+                  style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary),
+                ),
+              ]),
+            ],
+          ),
+        ),
         const Icon(Icons.chevron_right_rounded,
             color: AppColors.textHint, size: 20),
       ]),
@@ -378,6 +504,9 @@ class _MitraCard extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────
+// REVIEW ITEM
+// ─────────────────────────────────────────────
 class _ReviewItem extends StatelessWidget {
   final ({String name, double rating, String date, String comment}) review;
   const _ReviewItem({required this.review});
@@ -394,40 +523,61 @@ class _ReviewItem extends StatelessWidget {
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
+          // Avatar
           Container(
-            width: 32, height: 32,
+            width: 34, height: 34,
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Center(child: Text(review.name[0],
-                style: const TextStyle(fontSize: 13,
-                    fontWeight: FontWeight.w700, color: AppColors.primary))),
+            child: Center(
+              child: Text(review.name[0],
+                  style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary)),
+            ),
           ),
           const SizedBox(width: 10),
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(review.name, style: const TextStyle(fontSize: 13,
-                  fontWeight: FontWeight.w600)),
-              Text(review.date, style: const TextStyle(fontSize: 11,
-                  color: AppColors.textHint)),
-            ],
-          )),
-          Row(children: List.generate(5, (i) => Icon(
-            i < review.rating.floor()
-                ? Icons.star_rounded : Icons.star_outline_rounded,
-            color: AppColors.secondary, size: 14,
-          ))),
+          // Nama & tanggal
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(review.name,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(review.date,
+                    style: const TextStyle(
+                        fontSize: 11, color: AppColors.textHint)),
+              ],
+            ),
+          ),
+          // Bintang
+          Row(
+            children: List.generate(5, (i) => Icon(
+              i < review.rating.floor()
+                  ? Icons.star_rounded
+                  : Icons.star_outline_rounded,
+              color: AppColors.secondary,
+              size: 14,
+            )),
+          ),
         ]),
         const SizedBox(height: 8),
-        Text(review.comment, style: const TextStyle(fontSize: 13,
-            color: AppColors.textSecondary, height: 1.5)),
+        Text(review.comment,
+            style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.textSecondary,
+                height: 1.5)),
       ]),
     );
   }
 }
 
+// ─────────────────────────────────────────────
+// BOTTOM CTA
+// ─────────────────────────────────────────────
 class _BottomCta extends StatelessWidget {
   final ServiceModel service;
   const _BottomCta({required this.service});
@@ -435,30 +585,40 @@ class _BottomCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+      padding: EdgeInsets.fromLTRB(
+          20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        border: Border(
+            top: BorderSide(color: AppColors.border, width: 0.5)),
       ),
       child: Row(children: [
+        // Harga
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Harga mulai dari',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+              style: TextStyle(
+                  fontSize: 12, color: AppColors.textSecondary)),
           Row(children: [
             Text(service.formattedPrice,
-                style: const TextStyle(fontSize: 20,
-                    fontWeight: FontWeight.w700, color: AppColors.primary)),
+                style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primary)),
             Text('/${service.priceUnit}',
-                style: const TextStyle(fontSize: 13,
-                    color: AppColors.textHint)),
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textHint)),
           ]),
         ]),
         const SizedBox(width: 16),
+        // Tombol pesan
         Expanded(
           child: ElevatedButton(
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(
-                    builder: (_) => BookingScreen(service: service))),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookingScreen(service: service),
+              ),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -468,7 +628,8 @@ class _BottomCta extends StatelessWidget {
                   borderRadius: BorderRadius.circular(14)),
             ),
             child: const Text('Pesan Sekarang',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w700, fontSize: 15)),
           ),
         ),
       ]),
