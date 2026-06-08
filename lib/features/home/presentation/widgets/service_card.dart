@@ -163,14 +163,15 @@ class ServiceCard extends StatelessWidget {
                             ),
                           ]),
                         ),
+                        // Tampilkan harga mulai dari item termurah
                         Text(
-                          sub.price == 0 ? 'Gratis' : sub.formattedPrice,
-                          style: TextStyle(
+                          sub.items.isEmpty
+                              ? '-'
+                              : 'Mulai ${sub.formattedMinPrice}',
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: sub.price == 0
-                                ? AppColors.success
-                                : AppColors.primary,
+                            color: AppColors.primary,
                           ),
                         ),
                       ],
