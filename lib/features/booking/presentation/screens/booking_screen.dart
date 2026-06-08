@@ -6,7 +6,15 @@ import '../../../payment/presentation/screens/payment_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final ServiceModel service;
-  const BookingScreen({super.key, required this.service});
+  final List<SubService> selectedSubs;
+  final double totalPrice;
+
+  const BookingScreen({
+    super.key,
+    required this.service,
+    this.selectedSubs = const [],
+    this.totalPrice = 0,
+  });
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -34,7 +42,9 @@ class _BookingScreenState extends State<BookingScreen> {
   bool get _showQty =>
       !['sesi', 'unit', 'titik', 'kunjungan'].contains(s.priceUnit);
 
-  double get _subtotal  => s.price * _quantity;
+  double get _subtotal  => widget.totalPrice > 0
+      ? widget.totalPrice
+      : s.price * _quantity;
   double get _adminFee  => 2000;
   double get _total     => _subtotal + _adminFee;
 
@@ -198,10 +208,10 @@ class _BookingScreenState extends State<BookingScreen> {
 
                 // ── Ringkasan biaya ──
                 _PriceSummary(
-                  serviceName: s.name,
+                  service: s,
+                  selectedSubs: widget.selectedSubs,
                   quantity: _quantity,
                   showQty: _showQty,
-                  priceUnit: s.priceUnit,
                   subtotal: _subtotal,
                   adminFee: _adminFee,
                   total: _total,
@@ -556,17 +566,18 @@ class _SingleLineField extends StatelessWidget {
 // PRICE SUMMARY
 // ─────────────────────────────────────────────
 class _PriceSummary extends StatelessWidget {
-  final String serviceName, priceUnit;
+  final ServiceModel service;
+  final List<SubService> selectedSubs;
   final int quantity;
   final bool showQty;
   final double subtotal, adminFee, total;
   final String Function(double) fmt;
 
   const _PriceSummary({
-    required this.serviceName,
+    required this.service,
+    required this.selectedSubs,
     required this.quantity,
     required this.showQty,
-    required this.priceUnit,
     required this.subtotal,
     required this.adminFee,
     required this.total,
@@ -586,12 +597,20 @@ class _PriceSummary extends StatelessWidget {
         const Text('Ringkasan Biaya',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
-        _PriceRow(
-          label: showQty
-              ? '$serviceName x$quantity $priceUnit'
-              : serviceName,
-          value: fmt(subtotal),
-        ),
+        // Tampilkan per sub-layanan jika ada
+        if (selectedSubs.isNotEmpty) ...[
+          ...selectedSubs.map((sub) => _PriceRow(
+                label: sub.name,
+                value: sub.price == 0 ? 'Gratis' : fmt(sub.price),
+              )),
+        ] else ...[
+          _PriceRow(
+            label: showQty
+                ? '${service.name} x$quantity ${service.priceUnit}'
+                : service.name,
+            value: fmt(subtotal),
+          ),
+        ],
         _PriceRow(label: 'Biaya layanan', value: fmt(adminFee)),
         const Divider(height: 20),
         _PriceRow(

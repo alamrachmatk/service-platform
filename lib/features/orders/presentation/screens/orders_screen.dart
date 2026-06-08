@@ -131,14 +131,20 @@ class _OrderCard extends StatelessWidget {
               Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(order.serviceName,
+                  // Nama mitra sebagai judul utama
+                  Text(order.mitraName,
                       style: const TextStyle(fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary)),
+                          color: AppColors.textPrimary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 3),
-                  Text(order.mitraName,
+                  // Nama layanan sebagai subtitle
+                  Text(order.serviceName,
                       style: const TextStyle(fontSize: 12,
-                          color: AppColors.textSecondary)),
+                          color: AppColors.textSecondary),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
                 ],
               )),
               // Status badge
