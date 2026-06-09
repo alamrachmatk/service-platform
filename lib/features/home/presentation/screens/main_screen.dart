@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/user_model.dart';
+import '../../../../core/utils/navigation_service.dart';
 import 'home_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../../../orders/presentation/screens/orders_screen.dart';
@@ -16,7 +17,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
-
   late final List<Widget> _pages;
 
   @override
@@ -31,6 +31,24 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _onNavTap(int index) => setState(() => _currentIndex = index);
+
+  // Dipanggil setiap kali screen ini menjadi aktif kembali (setelah pop dari screen lain)
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkPendingNavigation();
+  }
+
+  void _checkPendingNavigation() {
+    if (NavigationService.pendingTabIndex >= 0) {
+      final idx = NavigationService.pendingTabIndex;
+      NavigationService.pendingTabIndex = -1;
+      // Delay satu frame agar build selesai dulu
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _currentIndex = idx);
+      });
+    }
+  }
 
   static const _navItems = [
     (icon: Icons.home_rounded,           label: 'Beranda'),
@@ -71,13 +89,8 @@ class _BottomNav extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 16,
-            offset: Offset(0, -2),
-          ),
-        ],
+        boxShadow: [BoxShadow(
+          color: Color(0x18000000), blurRadius: 16, offset: Offset(0, -2))],
       ),
       child: SafeArea(
         child: Padding(
@@ -98,25 +111,16 @@ class _BottomNav extends StatelessWidget {
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(items[i].icon,
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.textHint,
-                          size: 24),
-                      const SizedBox(height: 3),
-                      Text(items[i].label,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.textHint,
-                          )),
-                    ],
-                  ),
+                  child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(items[i].icon,
+                        color: selected ? AppColors.primary : AppColors.textHint,
+                        size: 24),
+                    const SizedBox(height: 3),
+                    Text(items[i].label, style: TextStyle(
+                      fontSize: 11, fontWeight: FontWeight.w600,
+                      color: selected ? AppColors.primary : AppColors.textHint,
+                    )),
+                  ]),
                 ),
               );
             }),

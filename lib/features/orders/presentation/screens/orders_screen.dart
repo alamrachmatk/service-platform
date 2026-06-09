@@ -3,6 +3,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
 import '../../../tracking/presentation/screens/order_tracking_screen.dart';
 import '../../../review/presentation/screens/review_screen.dart';
+import '../../../chat/presentation/screens/chat_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -50,8 +51,7 @@ class _OrdersScreenState extends State<OrdersScreen>
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,
           indicatorWeight: 2.5,
-          labelStyle: const TextStyle(
-              fontWeight: FontWeight.w600, fontSize: 14),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
           tabs: [
             Tab(text: 'Aktif (${_active.length})'),
             Tab(text: 'Riwayat (${_done.length})'),
@@ -61,16 +61,26 @@ class _OrdersScreenState extends State<OrdersScreen>
       body: TabBarView(
         controller: _tab,
         children: [
-          // Tab aktif
+          // ── Tab aktif ──
           _active.isEmpty
-              ? const _EmptyState(label: 'Belum ada pesanan aktif',
-                  sub: 'Pesanan yang sedang berjalan\nakan muncul di sini')
+              ? _EmptyState(
+                  label: 'Belum ada pesanan aktif',
+                  sub: 'Yuk pesan jasa pertamamu!',
+                  // ✅ Fix #2: tombol menuju beranda
+                  actionLabel: 'Cari Layanan',
+                  onAction: () {
+                    // Kembali ke tab Beranda di MainScreen
+                    Navigator.of(context).popUntil((r) => r.isFirst);
+                  },
+                )
               : _OrderList(orders: _active, isActive: true),
 
-          // Tab riwayat
+          // ── Tab riwayat ──
           _done.isEmpty
-              ? const _EmptyState(label: 'Belum ada riwayat',
-                  sub: 'Pesanan yang sudah selesai\nakan muncul di sini')
+              ? _EmptyState(
+                  label: 'Belum ada riwayat pesanan',
+                  sub: 'Pesanan yang selesai akan muncul di sini',
+                )
               : _OrderList(orders: _done, isActive: false),
         ],
       ),
@@ -78,6 +88,9 @@ class _OrdersScreenState extends State<OrdersScreen>
   }
 }
 
+// ─────────────────────────────────────────────
+// ORDER LIST
+// ─────────────────────────────────────────────
 class _OrderList extends StatelessWidget {
   final List<OrderModel> orders;
   final bool isActive;
@@ -93,6 +106,9 @@ class _OrderList extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────
+// ORDER CARD
+// ─────────────────────────────────────────────
 class _OrderCard extends StatelessWidget {
   final OrderModel order;
   final bool isActive;
@@ -118,116 +134,89 @@ class _OrderCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border, width: 0.5),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ── Header ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
-            child: Row(children: [
-              Text(order.serviceEmoji,
-                  style: const TextStyle(fontSize: 26)),
-              const SizedBox(width: 12),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Nama mitra sebagai judul utama
-                  Text(order.mitraName,
-                      style: const TextStyle(fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 3),
-                  // Nama layanan sebagai subtitle
-                  Text(order.serviceName,
-                      style: const TextStyle(fontSize: 12,
-                          color: AppColors.textSecondary),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ],
-              )),
-              // Status badge
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _statusColor.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '${order.status.emoji} ${order.status.label}',
-                  style: TextStyle(fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: _statusColor),
-                ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── Header ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 10),
+          child: Row(children: [
+            Text(order.serviceEmoji, style: const TextStyle(fontSize: 26)),
+            const SizedBox(width: 12),
+            Expanded(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(order.mitraName,
+                    style: const TextStyle(fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary),
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 3),
+                Text(order.serviceName,
+                    style: const TextStyle(fontSize: 12,
+                        color: AppColors.textSecondary),
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            )),
+            // Status badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _statusColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(20),
               ),
-            ]),
-          ),
+              child: Text('${order.status.emoji} ${order.status.label}',
+                  style: TextStyle(fontSize: 11,
+                      fontWeight: FontWeight.w600, color: _statusColor)),
+            ),
+          ]),
+        ),
 
-          Container(height: 0.5, color: AppColors.border,
-              margin: const EdgeInsets.symmetric(horizontal: 14)),
+        Container(height: 0.5, color: AppColors.border,
+            margin: const EdgeInsets.symmetric(horizontal: 14)),
 
-          // ── Info order ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-            child: Row(children: [
-              _InfoChip(icon: Icons.calendar_today_outlined,
-                  label: order.formattedDate),
-              const SizedBox(width: 12),
-              _InfoChip(icon: Icons.access_time_rounded,
-                  label: order.formattedTime),
-              const Spacer(),
-              Text(order.formattedPrice,
-                  style: const TextStyle(fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary)),
-            ]),
-          ),
+        // ── Info jadwal & harga ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
+          child: Row(children: [
+            _InfoChip(icon: Icons.calendar_today_outlined,
+                label: order.formattedDate),
+            const SizedBox(width: 12),
+            _InfoChip(icon: Icons.access_time_rounded,
+                label: order.formattedTime),
+            const Spacer(),
+            Text(order.formattedPrice,
+                style: const TextStyle(fontSize: 14,
+                    fontWeight: FontWeight.w700, color: AppColors.primary)),
+          ]),
+        ),
 
-          // ── Alamat ──
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
-            child: Row(children: [
-              const Icon(Icons.location_on_outlined,
-                  size: 13, color: AppColors.textHint),
-              const SizedBox(width: 4),
-              Expanded(child: Text(order.address,
-                  maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12,
-                      color: AppColors.textHint))),
-            ]),
-          ),
+        // ── Alamat ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+          child: Row(children: [
+            const Icon(Icons.location_on_outlined,
+                size: 13, color: AppColors.textHint),
+            const SizedBox(width: 4),
+            Expanded(child: Text(order.address,
+                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: AppColors.textHint))),
+          ]),
+        ),
 
-          // ── Tombol aksi ──
-          Container(height: 0.5, color: AppColors.border,
-              margin: const EdgeInsets.symmetric(horizontal: 14)),
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: _ActionButtons(order: order, isActive: isActive),
-          ),
-        ],
-      ),
+        // ── Tombol aksi ──
+        Container(height: 0.5, color: AppColors.border,
+            margin: const EdgeInsets.symmetric(horizontal: 14)),
+        Padding(
+          padding: const EdgeInsets.all(14),
+          child: _ActionButtons(order: order, isActive: isActive),
+        ),
+      ]),
     );
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _InfoChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(children: [
-      Icon(icon, size: 13, color: AppColors.textHint),
-      const SizedBox(width: 4),
-      Text(label, style: const TextStyle(fontSize: 12,
-          color: AppColors.textSecondary)),
-    ]);
-  }
-}
-
+// ─────────────────────────────────────────────
+// ACTION BUTTONS
+// ─────────────────────────────────────────────
 class _ActionButtons extends StatelessWidget {
   final OrderModel order;
   final bool isActive;
@@ -235,13 +224,13 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ── Riwayat: Beri Ulasan + Pesan Lagi ──
     if (!isActive) {
-      // Pesanan selesai → tombol ulasan & pesan lagi
       return Row(children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () => Navigator.push(context,
-                MaterialPageRoute(builder: (_) => ReviewScreen(order: order))),
+            onPressed: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => ReviewScreen(order: order))),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
               side: const BorderSide(color: AppColors.primary),
@@ -254,9 +243,13 @@ class _ActionButtons extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 10),
+        // ✅ Fix #3: Pesan Lagi → kembali ke beranda / detail mitra
         Expanded(
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              // Kembali ke root (MainScreen tab Beranda) agar user bisa pilih layanan lagi
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -272,11 +265,13 @@ class _ActionButtons extends StatelessWidget {
       ]);
     }
 
-    // Pesanan aktif → tombol tracking & chat
+    // ── Aktif: Chat Mitra + Lacak ──
     return Row(children: [
+      // ✅ Fix #1: Chat Mitra → buka ChatScreen
       Expanded(
         child: OutlinedButton.icon(
-          onPressed: () {},
+          onPressed: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => ChatScreen(order: order))),
           icon: const Icon(Icons.chat_bubble_outline_rounded, size: 14),
           label: const Text('Chat Mitra',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
@@ -292,9 +287,8 @@ class _ActionButtons extends StatelessWidget {
       const SizedBox(width: 10),
       Expanded(
         child: ElevatedButton.icon(
-          onPressed: () => Navigator.push(context,
-              MaterialPageRoute(
-                  builder: (_) => OrderTrackingScreen(order: order))),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => OrderTrackingScreen(order: order))),
           icon: const Icon(Icons.map_outlined, size: 14),
           label: const Text('Lacak',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
@@ -312,31 +306,84 @@ class _ActionButtons extends StatelessWidget {
   }
 }
 
+// ─────────────────────────────────────────────
+// INFO CHIP
+// ─────────────────────────────────────────────
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(children: [
+      Icon(icon, size: 13, color: AppColors.textHint),
+      const SizedBox(width: 4),
+      Text(label, style: const TextStyle(
+          fontSize: 12, color: AppColors.textSecondary)),
+    ]);
+  }
+}
+
+// ─────────────────────────────────────────────
+// EMPTY STATE
+// ─────────────────────────────────────────────
 class _EmptyState extends StatelessWidget {
   final String label, sub;
-  const _EmptyState({required this.label, required this.sub});
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  const _EmptyState({
+    required this.label,
+    required this.sub,
+    this.actionLabel,
+    this.onAction,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 80, height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.08),
-            shape: BoxShape.circle,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 80, height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.receipt_long_outlined,
+                size: 40, color: AppColors.primary),
           ),
-          child: const Icon(Icons.receipt_long_outlined,
-              size: 40, color: AppColors.primary),
-        ),
-        const SizedBox(height: 16),
-        Text(label, style: const TextStyle(fontSize: 15,
-            fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-        const SizedBox(height: 6),
-        Text(sub, textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 13,
-                color: AppColors.textSecondary, height: 1.5)),
-      ]),
+          const SizedBox(height: 16),
+          Text(label, style: const TextStyle(fontSize: 15,
+              fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          Text(sub, textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 13,
+                  color: AppColors.textSecondary, height: 1.5)),
+          // ✅ Fix #2: tombol aksi di empty state
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.search_rounded, size: 18),
+              label: Text(actionLabel!,
+                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ]),
+      ),
     );
   }
 }
