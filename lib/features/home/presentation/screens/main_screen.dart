@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/user_model.dart';
-import '../../../../core/utils/navigation_service.dart';
 import 'home_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../../../orders/presentation/screens/orders_screen.dart';
@@ -9,7 +8,11 @@ import '../../../profile/presentation/screens/profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final UserModel user;
-  const MainScreen({super.key, required this.user});
+
+  // ✅ globalKey di StatefulWidget (public) — bisa diakses MainScreen.globalKey
+  static final globalKey = GlobalKey<_MainScreenState>();
+
+  const MainScreen({Key? key, required this.user}) : super(key: key);
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -23,31 +26,16 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     _pages = [
-      HomeTab(user: widget.user, onNavTap: _onNavTap),
+      HomeTab(user: widget.user, onNavTap: switchTab),
       const SearchScreen(),
       const OrdersScreen(),
       ProfileScreen(user: widget.user),
     ];
   }
 
-  void _onNavTap(int index) => setState(() => _currentIndex = index);
-
-  // Dipanggil setiap kali screen ini menjadi aktif kembali (setelah pop dari screen lain)
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _checkPendingNavigation();
-  }
-
-  void _checkPendingNavigation() {
-    if (NavigationService.pendingTabIndex >= 0) {
-      final idx = NavigationService.pendingTabIndex;
-      NavigationService.pendingTabIndex = -1;
-      // Delay satu frame agar build selesai dulu
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _currentIndex = idx);
-      });
-    }
+  // ✅ Public method — dipanggil via MainScreen.globalKey.currentState?.switchTab(2)
+  void switchTab(int index) {
+    if (mounted) setState(() => _currentIndex = index);
   }
 
   static const _navItems = [
@@ -66,7 +54,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: _BottomNav(
         currentIndex: _currentIndex,
-        onTap: _onNavTap,
+        onTap: switchTab,
         items: _navItems,
       ),
     );
@@ -116,10 +104,12 @@ class _BottomNav extends StatelessWidget {
                         color: selected ? AppColors.primary : AppColors.textHint,
                         size: 24),
                     const SizedBox(height: 3),
-                    Text(items[i].label, style: TextStyle(
-                      fontSize: 11, fontWeight: FontWeight.w600,
-                      color: selected ? AppColors.primary : AppColors.textHint,
-                    )),
+                    Text(items[i].label,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: selected ? AppColors.primary : AppColors.textHint,
+                        )),
                   ]),
                 ),
               );

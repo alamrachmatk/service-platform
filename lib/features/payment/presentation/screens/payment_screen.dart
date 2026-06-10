@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
-import '../../../orders/presentation/screens/orders_screen.dart';
+import '../../../home/presentation/screens/main_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final OrderModel order;
@@ -84,10 +84,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const OrdersScreen()),
-                    (route) => route.isFirst,
-                  );
+                  // Pindah ke tab Pesanan di MainScreen lalu pop
+                  MainScreen.globalKey.currentState?.switchTab(2);
+                  Navigator.of(context).popUntil((route) => route.isFirst);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,

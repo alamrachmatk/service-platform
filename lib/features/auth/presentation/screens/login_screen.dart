@@ -43,6 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => MainScreen(
+          key: MainScreen.globalKey,
           user: const UserModel(
             name: 'Pengguna Google',
             phone: '',

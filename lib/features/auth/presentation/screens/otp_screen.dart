@@ -64,6 +64,7 @@ class _OtpScreenState extends State<OtpScreen> {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => MainScreen(
+            key: MainScreen.globalKey,
             user: UserModel(
               name: 'Pengguna JasaKu',
               phone: widget.phone,
