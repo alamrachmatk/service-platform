@@ -10,6 +10,8 @@ class AppColors {
   static const surface       = Colors.white;
   static const error         = Color(0xFFE53935);
   static const success       = Color(0xFF43A047);
+  static const warning       = Color(0xFFFFA726);
+  static const info          = Color(0xFF1976D2);
   static const textPrimary   = Color(0xFF1A2E2A);
   static const textSecondary = Color(0xFF607D8B);
   static const textHint      = Color(0xFFB0BEC5);

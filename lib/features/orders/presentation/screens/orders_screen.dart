@@ -4,6 +4,7 @@ import '../../../../core/models/order_model.dart';
 import '../../../tracking/presentation/screens/order_tracking_screen.dart';
 import '../../../review/presentation/screens/review_screen.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
+import '../../../cancellation/presentation/screens/cancellation_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -265,8 +266,9 @@ class _ActionButtons extends StatelessWidget {
       ]);
     }
 
-    // ── Aktif: Chat Mitra + Lacak ──
-    return Row(children: [
+    // ── Aktif: Batalkan + Chat + Lacak ──
+    return Column(children: [
+      Row(children: [
       // ✅ Fix #1: Chat Mitra → buka ChatScreen
       Expanded(
         child: OutlinedButton.icon(
@@ -300,6 +302,24 @@ class _ActionButtons extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10)),
             padding: const EdgeInsets.symmetric(vertical: 10),
           ),
+        ),
+      ),
+      ]),
+      const SizedBox(height: 8),
+      // Tombol batalkan
+      SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => CancellationScreen(order: order))),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.error,
+            side: const BorderSide(color: AppColors.error),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            padding: const EdgeInsets.symmetric(vertical: 10),
+          ),
+          child: const Text('Batalkan Pesanan',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         ),
       ),
     ]);

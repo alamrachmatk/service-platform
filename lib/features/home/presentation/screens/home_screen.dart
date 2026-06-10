@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../notifications/presentation/screens/notifications_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../../core/models/service_model.dart';
@@ -126,25 +127,29 @@ class _TopBar extends StatelessWidget {
                     color: AppColors.textPrimary)),
           ]),
         ),
-        Stack(children: [
-          Container(
-            width: 44, height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+        GestureDetector(
+          onTap: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => const NotificationsScreen())),
+          child: Stack(children: [
+            Container(
+              width: 44, height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.notifications_outlined,
+                  color: AppColors.textPrimary, size: 22),
             ),
-            child: const Icon(Icons.notifications_outlined,
-                color: AppColors.textPrimary, size: 22),
-          ),
-          Positioned(
-            right: 9, top: 9,
-            child: Container(
-              width: 8, height: 8,
-              decoration: const BoxDecoration(
-                  color: AppColors.error, shape: BoxShape.circle),
+            Positioned(
+              right: 9, top: 9,
+              child: Container(
+                width: 8, height: 8,
+                decoration: const BoxDecoration(
+                    color: AppColors.error, shape: BoxShape.circle),
+              ),
             ),
-          ),
-        ]),
+          ]),
+        ),
       ]),
     );
   }
