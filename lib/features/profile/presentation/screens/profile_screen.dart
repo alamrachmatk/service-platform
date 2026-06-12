@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../../promo/presentation/screens/promo_screen.dart';
+import '../../../help/presentation/screens/help_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../auth/presentation/screens/auth_screen.dart';
@@ -12,6 +14,7 @@ class ProfileScreen extends StatelessWidget {
     (icon: Icons.location_on_outlined,     label: 'Alamat Tersimpan'),
     (icon: Icons.payment_outlined,         label: 'Metode Pembayaran'),
     (icon: Icons.star_outline_rounded,     label: 'Ulasan Saya'),
+    (icon: Icons.local_offer_outlined,     label: 'Promo & Voucher'),
     (icon: Icons.help_outline_rounded,     label: 'Bantuan & FAQ'),
     (icon: Icons.shield_outlined,          label: 'Privasi & Keamanan'),
   ];
@@ -44,7 +47,15 @@ class ProfileScreen extends StatelessWidget {
           ..._menuItems.map((item) => _MenuItem(
                 icon: item.icon,
                 label: item.label,
-                onTap: () {},
+                onTap: () {
+                  if (item.label == 'Promo & Voucher') {
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => const PromoScreen()));
+                  } else if (item.label == 'Bantuan & FAQ') {
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => const HelpScreen()));
+                  }
+                },
               )),
           const SizedBox(height: 8),
 
