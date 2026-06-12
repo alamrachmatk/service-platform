@@ -1,23 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../promo/presentation/screens/promo_screen.dart';
-import '../../../help/presentation/screens/help_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../auth/presentation/screens/auth_screen.dart';
+import 'edit_profile_screen.dart';
+import 'saved_address_screen.dart';
+import 'payment_method_screen.dart';
+import 'my_reviews_screen.dart';
+import 'privacy_screen.dart';
+import '../../../promo/presentation/screens/promo_screen.dart';
+import '../../../help/presentation/screens/help_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
   const ProfileScreen({super.key, required this.user});
-
-  static const _menuItems = [
-    (icon: Icons.person_outline_rounded,   label: 'Edit Profil'),
-    (icon: Icons.location_on_outlined,     label: 'Alamat Tersimpan'),
-    (icon: Icons.payment_outlined,         label: 'Metode Pembayaran'),
-    (icon: Icons.star_outline_rounded,     label: 'Ulasan Saya'),
-    (icon: Icons.local_offer_outlined,     label: 'Promo & Voucher'),
-    (icon: Icons.help_outline_rounded,     label: 'Bantuan & FAQ'),
-    (icon: Icons.shield_outlined,          label: 'Privasi & Keamanan'),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -44,19 +39,48 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 16),
 
           // ── Menu ──
-          ..._menuItems.map((item) => _MenuItem(
-                icon: item.icon,
-                label: item.label,
-                onTap: () {
-                  if (item.label == 'Promo & Voucher') {
-                    Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => const PromoScreen()));
-                  } else if (item.label == 'Bantuan & FAQ') {
-                    Navigator.push(context, MaterialPageRoute(
-                        builder: (_) => const HelpScreen()));
-                  }
-                },
-              )),
+          _MenuItem(
+            icon: Icons.person_outline_rounded,
+            label: 'Edit Profil',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => EditProfileScreen(user: user))),
+          ),
+          _MenuItem(
+            icon: Icons.location_on_outlined,
+            label: 'Alamat Tersimpan',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const SavedAddressScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.payment_outlined,
+            label: 'Metode Pembayaran',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const PaymentMethodScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.star_outline_rounded,
+            label: 'Ulasan Saya',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const MyReviewsScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.local_offer_outlined,
+            label: 'Promo & Voucher',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const PromoScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.help_outline_rounded,
+            label: 'Bantuan & FAQ',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const HelpScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.shield_outlined,
+            label: 'Privasi & Keamanan',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const PrivacyScreen())),
+          ),
           const SizedBox(height: 8),
 
           // ── Tombol keluar ──
@@ -82,7 +106,6 @@ class _ProfileCard extends StatelessWidget {
         border: Border.all(color: AppColors.border, width: 0.5),
       ),
       child: Row(children: [
-        // Avatar
         Container(
           width: 60, height: 60,
           decoration: const BoxDecoration(
@@ -93,28 +116,21 @@ class _ProfileCard extends StatelessWidget {
             ),
             shape: BoxShape.circle,
           ),
-          child: Center(
-            child: Text(user.initials,
-                style: const TextStyle(fontSize: 24,
-                    fontWeight: FontWeight.w700, color: Colors.white)),
-          ),
+          child: Center(child: Text(user.initials,
+              style: const TextStyle(fontSize: 24,
+                  fontWeight: FontWeight.w700, color: Colors.white))),
         ),
         const SizedBox(width: 16),
-
-        // Nama & kontak
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(user.name,
-                style: const TextStyle(fontSize: 16,
-                    fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(user.name, style: const TextStyle(fontSize: 16,
+                fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
             const SizedBox(height: 4),
-            Text(user.displayId,
-                style: const TextStyle(fontSize: 13,
-                    color: AppColors.textSecondary)),
-          ]),
-        ),
-
-        // Badge
+            Text(user.displayId, style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary)),
+          ],
+        )),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           decoration: BoxDecoration(
@@ -135,11 +151,7 @@ class _MenuItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _MenuItem({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  const _MenuItem({required this.icon, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -156,12 +168,8 @@ class _MenuItem extends StatelessWidget {
         child: Row(children: [
           Icon(icon, color: AppColors.primary, size: 20),
           const SizedBox(width: 14),
-          Expanded(
-            child: Text(label,
-                style: const TextStyle(fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary)),
-          ),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 14,
+              fontWeight: FontWeight.w500, color: AppColors.textPrimary))),
           const Icon(Icons.chevron_right_rounded,
               color: AppColors.textHint, size: 20),
         ]),
@@ -184,15 +192,13 @@ class _LogoutButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.error.withOpacity(0.06),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: AppColors.error.withOpacity(0.2), width: 0.5),
+          border: Border.all(color: AppColors.error.withOpacity(0.2), width: 0.5),
         ),
         child: const Row(children: [
           Icon(Icons.logout_rounded, color: AppColors.error, size: 20),
           SizedBox(width: 14),
-          Text('Keluar dari Akun',
-              style: TextStyle(fontSize: 14,
-                  fontWeight: FontWeight.w600, color: AppColors.error)),
+          Text('Keluar dari Akun', style: TextStyle(fontSize: 14,
+              fontWeight: FontWeight.w600, color: AppColors.error)),
         ]),
       ),
     );
@@ -203,8 +209,7 @@ class _LogoutButton extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Keluar',
-            style: TextStyle(fontWeight: FontWeight.w700)),
+        title: const Text('Keluar', style: TextStyle(fontWeight: FontWeight.w700)),
         content: const Text('Yakin ingin keluar dari akun?'),
         actions: [
           TextButton(
@@ -213,18 +218,19 @@ class _LogoutButton extends StatelessWidget {
                 style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const AuthScreen()),
-                (_) => false,
-              );
-            },
+            onPressed: () => Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const AuthScreen()),
+              (_) => false,
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Keluar'),
+            child: const Text('Keluar',
+                style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
