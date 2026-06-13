@@ -49,13 +49,24 @@ class _BookingScreenState extends State<BookingScreen> {
   bool get _isValid =>
       _date != null && _time != null && _address != null;
 
-  void _openLocationPicker() {
+  void _openAddressPicker() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => LocationPickerSheet(
-        onSelected: (addr) => setState(() => _address = addr),
+      builder: (_) => _AddressPickerSheet(
+        onSelectSaved: (addr) => setState(() => _address = addr),
+        onAddNew: () {
+          Navigator.pop(context);
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (_) => LocationPickerSheet(
+              onSelected: (addr) => setState(() => _address = addr),
+            ),
+          );
+        },
       ),
     );
   }
@@ -170,7 +181,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   icon: Icons.location_on_outlined,
                   child: _address == null
                       ? GestureDetector(
-                          onTap: _openLocationPicker,
+                          onTap: _openAddressPicker,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 14),
@@ -183,7 +194,7 @@ class _BookingScreenState extends State<BookingScreen> {
                               Icon(Icons.add_location_alt_outlined,
                                   size: 18, color: AppColors.primary),
                               SizedBox(width: 10),
-                              Text('Pilih alamat (Provinsi → Kelurahan)',
+                              Text('Pilih atau tambah alamat',
                                   style: TextStyle(fontSize: 14,
                                       color: AppColors.textHint)),
                               Spacer(),
@@ -193,7 +204,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           ),
                         )
                       : GestureDetector(
-                          onTap: _openLocationPicker,
+                          onTap: _openAddressPicker,
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
@@ -577,4 +588,205 @@ class _BottomBar extends StatelessWidget {
       ]),
     );
   }
+}
+
+// ─────────────────────────────────────────────
+// BOTTOM SHEET PILIH ALAMAT
+// ─────────────────────────────────────────────
+class _AddressPickerSheet extends StatelessWidget {
+  final void Function(AddressModel) onSelectSaved;
+  final VoidCallback onAddNew;
+
+  const _AddressPickerSheet({
+    required this.onSelectSaved,
+    required this.onAddNew,
+  });
+
+  // Alamat tersimpan dummy — nanti dari database/state
+  static final _saved = [
+    _SavedAddress(
+      label: 'Rumah',
+      icon: Icons.home_outlined,
+      detail: 'Jl. Merdeka No. 10, RT 02/03',
+      area: 'Bogor Tengah, Kota Bogor, Jawa Barat',
+      isPrimary: true,
+      address: AddressModel(
+        province: 'Jawa Barat',
+        city: 'Kota Bogor',
+        district: 'Bogor Tengah',
+        village: 'Cibogor',
+        detail: 'Jl. Merdeka No. 10, RT 02/03',
+      ),
+    ),
+    _SavedAddress(
+      label: 'Kantor',
+      icon: Icons.business_outlined,
+      detail: 'Jl. Sudirman No. 45, Lt. 3',
+      area: 'Bogor Selatan, Kota Bogor, Jawa Barat',
+      isPrimary: false,
+      address: AddressModel(
+        province: 'Jawa Barat',
+        city: 'Kota Bogor',
+        district: 'Bogor Selatan',
+        village: 'Empang',
+        detail: 'Jl. Sudirman No. 45, Lt. 3',
+      ),
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).padding.bottom + 16),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // Handle
+        Container(
+          width: 40, height: 4,
+          margin: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: AppColors.border,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+
+        // Header
+        const Padding(
+          padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+          child: Row(children: [
+            Text('Pilih Alamat Kunjungan',
+                style: TextStyle(fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary)),
+          ]),
+        ),
+        const Divider(height: 0),
+
+        // ── Alamat tersimpan ──
+        if (_saved.isNotEmpty) ...[
+          const Padding(
+            padding: EdgeInsets.fromLTRB(20, 14, 20, 8),
+            child: Row(children: [
+              Icon(Icons.bookmark_outline_rounded,
+                  size: 15, color: AppColors.textSecondary),
+              SizedBox(width: 6),
+              Text('Alamat Tersimpan',
+                  style: TextStyle(fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary)),
+            ]),
+          ),
+          ..._saved.map((s) => GestureDetector(
+            onTap: () {
+              Navigator.pop(context);
+              onSelectSaved(s.address);
+            },
+            child: Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: s.isPrimary
+                    ? AppColors.primary.withOpacity(0.04)
+                    : AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: s.isPrimary
+                      ? AppColors.primary.withOpacity(0.3)
+                      : AppColors.border,
+                  width: s.isPrimary ? 1.5 : 0.5,
+                ),
+              ),
+              child: Row(children: [
+                Container(
+                  width: 38, height: 38,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(s.icon, color: AppColors.primary, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(children: [
+                      Text(s.label, style: const TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary)),
+                      if (s.isPrimary) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text('Utama',
+                              style: TextStyle(fontSize: 9,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ]),
+                    const SizedBox(height: 2),
+                    Text(s.detail, style: const TextStyle(
+                        fontSize: 12, color: AppColors.textSecondary)),
+                    Text(s.area, style: const TextStyle(
+                        fontSize: 11, color: AppColors.textHint)),
+                  ],
+                )),
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.textHint, size: 18),
+              ]),
+            ),
+          )),
+          const Divider(height: 20, indent: 16, endIndent: 16),
+        ],
+
+        // ── Tambah alamat baru ──
+        GestureDetector(
+          onTap: onAddNew,
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: AppColors.primary.withOpacity(0.4)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.add_location_alt_outlined,
+                    color: AppColors.primary, size: 20),
+                SizedBox(width: 8),
+                Text('Tambah Alamat Baru',
+                    style: TextStyle(fontSize: 14,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600)),
+              ],
+            ),
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _SavedAddress {
+  final String label, detail, area;
+  final IconData icon;
+  final bool isPrimary;
+  final AddressModel address;
+
+  const _SavedAddress({
+    required this.label, required this.detail, required this.area,
+    required this.icon, required this.isPrimary, required this.address,
+  });
 }
