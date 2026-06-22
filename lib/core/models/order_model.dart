@@ -137,7 +137,7 @@ class DummyOrders {
           mitraPhone: '082345678901',
           price: 200000,
           priceUnit: 'sesi',
-          scheduledAt: DateTime.now().subtract(const Duration(days: 2)),
+          scheduledAt: DateTime.now().subtract(const Duration(hours: 5)),
           address: 'Jl. Pahlawan No. 5, Bogor Utara',
           status: OrderStatus.completed,
           paymentMethod: 'GoPay',

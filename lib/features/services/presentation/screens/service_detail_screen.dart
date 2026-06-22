@@ -524,6 +524,20 @@ class _MitraHeader extends StatelessWidget {
                   style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
             ]),
           ),
+        const SizedBox(height: 6),
+        // Badge jaminan kepuasan
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(color: AppColors.success.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.success.withOpacity(0.2))),
+          child: const Row(mainAxisSize: MainAxisSize.min, children: [
+            Icon(Icons.shield_outlined, color: AppColors.success, size: 14),
+            SizedBox(width: 5),
+            Text('Bergaransi — Layanan ulang gratis atau refund',
+                style: TextStyle(fontSize: 11, color: AppColors.success, fontWeight: FontWeight.w600)),
+          ]),
+        ),
       ]),
     );
   }

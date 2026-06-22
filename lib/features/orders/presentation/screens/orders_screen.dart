@@ -5,6 +5,7 @@ import '../../../tracking/presentation/screens/order_tracking_screen.dart';
 import '../../../review/presentation/screens/review_screen.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
 import '../../../cancellation/presentation/screens/cancellation_screen.dart';
+import '../../../guarantee/presentation/screens/guarantee_claim_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -225,13 +226,56 @@ class _ActionButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ── Riwayat: Beri Ulasan + Pesan Lagi ──
+    // ── Riwayat: Beri Ulasan + Pesan Lagi + Klaim Garansi ──
     if (!isActive) {
-      return Row(children: [
-        Expanded(
-          child: OutlinedButton(
+      return Column(children: [
+        Row(children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => ReviewScreen(order: order))),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: const Text('Beri Ulasan',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // ✅ Fix #3: Pesan Lagi → kembali ke beranda / detail mitra
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                // Kembali ke root (MainScreen tab Beranda) agar user bisa pilih layanan lagi
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: const Text('Pesan Lagi',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        // ── Klaim Garansi ──
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
             onPressed: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => ReviewScreen(order: order))),
+                builder: (_) => GuaranteeClaimScreen(order: order))),
+            icon: const Icon(Icons.verified_user_outlined, size: 15),
+            label: const Text('Klaim Garansi Layanan',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.primary,
               side: const BorderSide(color: AppColors.primary),
@@ -239,28 +283,6 @@ class _ActionButtons extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10)),
               padding: const EdgeInsets.symmetric(vertical: 10),
             ),
-            child: const Text('Beri Ulasan',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-          ),
-        ),
-        const SizedBox(width: 10),
-        // ✅ Fix #3: Pesan Lagi → kembali ke beranda / detail mitra
-        Expanded(
-          child: ElevatedButton(
-            onPressed: () {
-              // Kembali ke root (MainScreen tab Beranda) agar user bisa pilih layanan lagi
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-            ),
-            child: const Text('Pesan Lagi',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           ),
         ),
       ]);
