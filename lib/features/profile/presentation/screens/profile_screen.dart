@@ -9,6 +9,7 @@ import 'my_reviews_screen.dart';
 import 'privacy_screen.dart';
 import '../../../promo/presentation/screens/promo_screen.dart';
 import '../../../help/presentation/screens/help_screen.dart';
+import '../../../recurring/presentation/screens/recurring_schedule_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
@@ -62,6 +63,12 @@ class ProfileScreen extends StatelessWidget {
             label: 'Ulasan Saya',
             onTap: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => const MyReviewsScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.repeat_rounded,
+            label: 'Jadwal Layanan Rutin',
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const RecurringScheduleScreen())),
           ),
           _MenuItem(
             icon: Icons.local_offer_outlined,

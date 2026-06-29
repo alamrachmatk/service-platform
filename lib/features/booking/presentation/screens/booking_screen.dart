@@ -3,6 +3,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service_model.dart';
 import '../../../../core/models/order_model.dart';
 import '../../../../core/models/address_model.dart';
+import '../../../../core/models/recurring_schedule_model.dart';
 import '../../../../shared/widgets/location_picker_sheet.dart';
 import '../../../payment/presentation/screens/payment_screen.dart';
 
@@ -28,6 +29,10 @@ class _BookingScreenState extends State<BookingScreen> {
   TimeOfDay?    _time;
   AddressModel? _address;
   bool _loading = false;
+
+  // ── Jadwal rutin ──
+  bool _isRecurring = false;
+  RecurringFrequency _frequency = RecurringFrequency.weekly;
 
   @override
   void dispose() {
@@ -90,6 +95,14 @@ class _BookingScreenState extends State<BookingScreen> {
       _time!.hour, _time!.minute,
     );
 
+    final recurringNote = _isRecurring
+        ? '🔁 Jadwal Rutin: ${_frequency.label}'
+        : null;
+    final combinedNotes = [
+      if (recurringNote != null) recurringNote,
+      if (_notesCtrl.text.trim().isNotEmpty) _notesCtrl.text.trim(),
+    ].join('\n');
+
     final order = OrderModel(
       id: 'ORD-${DateTime.now().millisecondsSinceEpoch}',
       serviceId: s.id,
@@ -101,7 +114,7 @@ class _BookingScreenState extends State<BookingScreen> {
       priceUnit: 'layanan',
       scheduledAt: scheduled,
       address: _address!.fullAddress,
-      notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+      notes: combinedNotes.isEmpty ? null : combinedNotes,
     );
 
     Navigator.push(context,
@@ -274,6 +287,15 @@ class _BookingScreenState extends State<BookingScreen> {
                               color: AppColors.primary, width: 1.5)),
                     ),
                   ),
+                ),
+                const SizedBox(height: 14),
+
+                // ── Jadwal rutin ──
+                _RecurringCard(
+                  isRecurring: _isRecurring,
+                  frequency: _frequency,
+                  onToggle: (v) => setState(() => _isRecurring = v),
+                  onFrequencyChange: (f) => setState(() => _frequency = f),
                 ),
                 const SizedBox(height: 14),
 
@@ -789,4 +811,138 @@ class _SavedAddress {
     required this.label, required this.detail, required this.area,
     required this.icon, required this.isPrimary, required this.address,
   });
+}
+
+// ─────────────────────────────────────────────
+// CARD JADWAL RUTIN
+// ─────────────────────────────────────────────
+class _RecurringCard extends StatelessWidget {
+  final bool isRecurring;
+  final RecurringFrequency frequency;
+  final void Function(bool) onToggle;
+  final void Function(RecurringFrequency) onFrequencyChange;
+
+  const _RecurringCard({
+    required this.isRecurring,
+    required this.frequency,
+    required this.onToggle,
+    required this.onFrequencyChange,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isRecurring
+              ? AppColors.primary.withOpacity(0.4)
+              : AppColors.border,
+          width: isRecurring ? 1.5 : 0.5,
+        ),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.repeat_rounded,
+                color: AppColors.primary, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Jadikan Jadwal Rutin',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              const Text('Layanan otomatis terjadwal berulang',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ],
+          )),
+          Switch(
+            value: isRecurring,
+            onChanged: onToggle,
+            activeColor: AppColors.primary,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ]),
+
+        if (isRecurring) ...[
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 14),
+          const Text('Pilih Frekuensi',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary)),
+          const SizedBox(height: 10),
+          ...RecurringFrequency.values.map((f) {
+            final selected = frequency == f;
+            return GestureDetector(
+              onTap: () => onFrequencyChange(f),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: selected
+                      ? AppColors.primary.withOpacity(0.06)
+                      : AppColors.background,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: selected ? AppColors.primary : AppColors.border,
+                    width: selected ? 1.5 : 0.5,
+                  ),
+                ),
+                child: Row(children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 18, height: 18,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: selected ? AppColors.primary : AppColors.border,
+                        width: selected ? 5 : 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(f.label, style: TextStyle(
+                          fontSize: 13, fontWeight: FontWeight.w600,
+                          color: selected ? AppColors.primary : AppColors.textPrimary)),
+                      Text(f.desc, style: const TextStyle(
+                          fontSize: 11, color: AppColors.textHint)),
+                    ],
+                  )),
+                ]),
+              ),
+            );
+          }),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Row(children: [
+              Icon(Icons.info_outline_rounded, size: 13, color: AppColors.warning),
+              SizedBox(width: 6),
+              Expanded(child: Text(
+                'Kamu bisa jeda atau batalkan jadwal kapan saja dari menu Profil',
+                style: TextStyle(fontSize: 11, color: AppColors.warning),
+              )),
+            ]),
+          ),
+        ],
+      ]),
+    );
+  }
 }
