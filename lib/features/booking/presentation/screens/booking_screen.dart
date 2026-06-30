@@ -7,6 +7,35 @@ import '../../../../core/models/recurring_schedule_model.dart';
 import '../../../../shared/widgets/location_picker_sheet.dart';
 import '../../../payment/presentation/screens/payment_screen.dart';
 
+// ── Enum pilihan gender mitra ──
+enum MitraGender { any, male, female }
+
+extension MitraGenderX on MitraGender {
+  String get label {
+    switch (this) {
+      case MitraGender.any:    return 'Tidak Ada Preferensi';
+      case MitraGender.male:   return 'Laki-laki';
+      case MitraGender.female: return 'Perempuan';
+    }
+  }
+
+  String get desc {
+    switch (this) {
+      case MitraGender.any:    return 'Mitra mana saja yang tersedia';
+      case MitraGender.male:   return 'Khusus mitra laki-laki';
+      case MitraGender.female: return 'Khusus mitra perempuan';
+    }
+  }
+
+  String get emoji {
+    switch (this) {
+      case MitraGender.any:    return '👥';
+      case MitraGender.male:   return '👨';
+      case MitraGender.female: return '👩';
+    }
+  }
+}
+
 class BookingScreen extends StatefulWidget {
   final ServiceModel service;
   final List<SelectedItem> selectedItems;
@@ -33,6 +62,9 @@ class _BookingScreenState extends State<BookingScreen> {
   // ── Jadwal rutin ──
   bool _isRecurring = false;
   RecurringFrequency _frequency = RecurringFrequency.weekly;
+
+  // ── Pilih gender mitra ──
+  MitraGender _preferredGender = MitraGender.any;
 
   @override
   void dispose() {
@@ -98,8 +130,12 @@ class _BookingScreenState extends State<BookingScreen> {
     final recurringNote = _isRecurring
         ? '🔁 Jadwal Rutin: ${_frequency.label}'
         : null;
+    final genderNote = _preferredGender != MitraGender.any
+        ? '${_preferredGender.emoji} Preferensi Mitra: ${_preferredGender.label}'
+        : null;
     final combinedNotes = [
       if (recurringNote != null) recurringNote,
+      if (genderNote != null) genderNote,
       if (_notesCtrl.text.trim().isNotEmpty) _notesCtrl.text.trim(),
     ].join('\n');
 
@@ -296,6 +332,13 @@ class _BookingScreenState extends State<BookingScreen> {
                   frequency: _frequency,
                   onToggle: (v) => setState(() => _isRecurring = v),
                   onFrequencyChange: (f) => setState(() => _frequency = f),
+                ),
+                const SizedBox(height: 14),
+
+                // ── Pilih gender mitra ──
+                _GenderCard(
+                  selected: _preferredGender,
+                  onChanged: (g) => setState(() => _preferredGender = g),
                 ),
                 const SizedBox(height: 14),
 
@@ -942,6 +985,128 @@ class _RecurringCard extends StatelessWidget {
             ]),
           ),
         ],
+      ]),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// CARD PILIH GENDER MITRA
+// ─────────────────────────────────────────────
+class _GenderCard extends StatelessWidget {
+  final MitraGender selected;
+  final void Function(MitraGender) onChanged;
+
+  const _GenderCard({required this.selected, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 0.5),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // Header
+        Row(children: [
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.person_search_rounded,
+                color: AppColors.primary, size: 18),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Preferensi Gender Mitra',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary)),
+              Text('Opsional — sesuai kenyamanan kamu',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            ],
+          )),
+        ]),
+        const SizedBox(height: 14),
+
+        // Pilihan gender — 3 tombol horizontal
+        Row(children: MitraGender.values.map((g) {
+          final isSelected = selected == g;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => onChanged(g),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: EdgeInsets.only(
+                  right: g != MitraGender.female ? 8 : 0,
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? AppColors.primary.withOpacity(0.08)
+                      : AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected
+                        ? AppColors.primary
+                        : AppColors.border,
+                    width: isSelected ? 1.5 : 0.5,
+                  ),
+                ),
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  Text(g.emoji, style: const TextStyle(fontSize: 22)),
+                  const SizedBox(height: 5),
+                  Text(g.label,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.textSecondary,
+                      )),
+                ]),
+              ),
+            ),
+          );
+        }).toList()),
+        const SizedBox(height: 10),
+
+        // Info ketersediaan
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: selected == MitraGender.any
+              ? const SizedBox.shrink()
+              : Container(
+                  key: ValueKey(selected),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.info.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                        color: AppColors.info.withOpacity(0.2)),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.info_outline_rounded,
+                        size: 14, color: AppColors.info),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(
+                      'Kami akan mencarikan mitra ${selected.label.toLowerCase()} '
+                      'yang tersedia. Waktu tunggu mungkin sedikit lebih lama.',
+                      style: const TextStyle(fontSize: 11,
+                          color: AppColors.info, height: 1.4),
+                    )),
+                  ]),
+                ),
+        ),
       ]),
     );
   }
