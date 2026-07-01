@@ -189,6 +189,54 @@ class _BookingScreenState extends State<BookingScreen> {
                   title: 'Pilih Jadwal',
                   icon: Icons.calendar_today_outlined,
                   child: Column(children: [
+                    // ── Quick action: Pesan Hari Ini ──
+                    if (s.isAvailableToday) ...[
+                      GestureDetector(
+                        onTap: () {
+                          final now = DateTime.now();
+                          setState(() {
+                            _date = DateTime(now.year, now.month, now.day);
+                            _time = TimeOfDay(
+                                hour: now.hour + 1, minute: 0);
+                          });
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.warning.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: AppColors.warning.withOpacity(0.4)),
+                          ),
+                          child: Row(children: [
+                            const Icon(Icons.bolt_rounded,
+                                color: AppColors.warning, size: 18),
+                            const SizedBox(width: 8),
+                            const Expanded(child: Text(
+                              'Mitra ini tersedia hari ini juga!',
+                              style: TextStyle(fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.warning),
+                            )),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: AppColors.warning,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Text('Pesan Sekarang',
+                                  style: TextStyle(fontSize: 11,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700)),
+                            ),
+                          ]),
+                        ),
+                      ),
+                    ],
                     _PickerRow(
                       icon: Icons.calendar_month_outlined,
                       label: 'Tanggal kunjungan',
@@ -199,8 +247,12 @@ class _BookingScreenState extends State<BookingScreen> {
                       onTap: () async {
                         final d = await showDatePicker(
                           context: context,
-                          initialDate: DateTime.now().add(const Duration(days: 1)),
-                          firstDate: DateTime.now(),
+                          initialDate: s.isAvailableToday
+                              ? DateTime.now()
+                              : DateTime.now().add(const Duration(days: 1)),
+                          firstDate: s.isAvailableToday
+                              ? DateTime.now()
+                              : DateTime.now().add(const Duration(days: 1)),
                           lastDate: DateTime.now().add(const Duration(days: 30)),
                         );
                         if (d != null) setState(() => _date = d);

@@ -90,18 +90,41 @@ class ServiceCard extends StatelessWidget {
                         ),
                       ]),
                       const SizedBox(height: 5),
-                      // Badge verified
-                      if (service.isVerified)
-                        Row(mainAxisSize: MainAxisSize.min, children: [
-                          const Icon(Icons.verified_rounded,
-                              color: AppColors.primary, size: 13),
-                          const SizedBox(width: 3),
-                          const Text('Terverifikasi',
-                              style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600)),
-                        ]),
+                      // Badge verified + tersedia hari ini
+                      Row(children: [
+                        if (service.isVerified)
+                          Row(mainAxisSize: MainAxisSize.min, children: [
+                            const Icon(Icons.verified_rounded,
+                                color: AppColors.primary, size: 13),
+                            const SizedBox(width: 3),
+                            const Text('Terverifikasi',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600)),
+                          ]),
+                        if (service.isVerified && service.isAvailableToday)
+                          const SizedBox(width: 8),
+                        if (service.isAvailableToday)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(mainAxisSize: MainAxisSize.min, children: [
+                              const Icon(Icons.bolt_rounded,
+                                  color: AppColors.warning, size: 11),
+                              const SizedBox(width: 2),
+                              const Text('Hari Ini',
+                                  style: TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.w700)),
+                            ]),
+                          ),
+                      ]),
                     ],
                   ),
                 ),

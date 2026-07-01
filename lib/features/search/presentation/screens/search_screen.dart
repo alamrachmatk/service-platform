@@ -15,16 +15,32 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final _ctrl = TextEditingController();
-  List<ServiceModel> _results = DummyServices.all;
   String? _activeCategory;
+  bool _todayOnly = false; // ── Same Day Service filter ──
+
+  List<ServiceModel> get _baseList {
+    var list = DummyServices.all;
+    if (_activeCategory != null) {
+      list = list.where((s) => s.category == _activeCategory).toList();
+    }
+    if (_ctrl.text.isNotEmpty) {
+      final q = _ctrl.text.toLowerCase();
+      list = list.where((s) =>
+          s.name.toLowerCase().contains(q) ||
+          s.category.toLowerCase().contains(q) ||
+          s.mitra.toLowerCase().contains(q)).toList();
+    }
+    if (_todayOnly) {
+      list = list.where((s) => s.isAvailableToday).toList();
+    }
+    return list;
+  }
 
   @override
   void initState() {
     super.initState();
-    // Jika ada kategori awal dari klik kategori di home, langsung filter
     if (widget.initialCategory != null) {
       _activeCategory = widget.initialCategory;
-      _filterByCategory(widget.initialCategory!);
     }
   }
 
@@ -34,40 +50,20 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _search(String q) {
-    setState(() {
-      _activeCategory = null; // reset filter kategori saat user ketik
-      _results = q.isEmpty
-          ? DummyServices.all
-          : DummyServices.all.where((s) =>
-              s.name.toLowerCase().contains(q.toLowerCase()) ||
-              s.category.toLowerCase().contains(q.toLowerCase()) ||
-              s.mitra.toLowerCase().contains(q.toLowerCase())).toList();
-    });
-  }
-
   void _filterByCategory(String category) {
     setState(() {
       _activeCategory = category;
       _ctrl.clear();
-      _results = DummyServices.all
-          .where((s) => s.category == category)
-          .toList();
     });
   }
 
-  void _clearCategory() {
-    setState(() {
-      _activeCategory = null;
-      _results = DummyServices.all;
-    });
-  }
+  void _clearCategory() => setState(() => _activeCategory = null);
 
   @override
   Widget build(BuildContext context) {
-    // Jika dibuka via Navigator.push (dari kategori home),
-    // tampilkan tombol back
     final bool pushedFromHome = widget.initialCategory != null;
+    final results = _baseList;
+    final todayCount = DummyServices.all.where((s) => s.isAvailableToday).length;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -84,14 +80,11 @@ class _SearchScreenState extends State<SearchScreen> {
               )
             : null,
         title: Padding(
-          padding: EdgeInsets.only(
-            left: pushedFromHome ? 0 : 16,
-            right: 16,
-          ),
+          padding: EdgeInsets.only(left: pushedFromHome ? 0 : 16, right: 16),
           child: TextField(
             controller: _ctrl,
-            onChanged: _search,
-            autofocus: pushedFromHome, // auto fokus jika dari kategori
+            onChanged: (_) => setState(() {}),
+            autofocus: pushedFromHome,
             decoration: InputDecoration(
               hintText: _activeCategory != null
                   ? 'Cari di $_activeCategory...'
@@ -106,7 +99,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       icon: const Icon(Icons.clear_rounded, size: 18),
                       onPressed: () {
                         _ctrl.clear();
-                        _search('');
+                        setState(() {});
                       },
                     )
                   : null,
@@ -121,6 +114,61 @@ class _SearchScreenState extends State<SearchScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Filter Same Day Service ──
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: GestureDetector(
+              onTap: () => setState(() => _todayOnly = !_todayOnly),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: _todayOnly
+                      ? AppColors.warning.withOpacity(0.12)
+                      : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _todayOnly
+                        ? AppColors.warning
+                        : AppColors.border,
+                    width: _todayOnly ? 1.5 : 0.5,
+                  ),
+                ),
+                child: Row(children: [
+                  Icon(Icons.bolt_rounded,
+                      size: 18,
+                      color: _todayOnly
+                          ? AppColors.warning
+                          : AppColors.textSecondary),
+                  const SizedBox(width: 8),
+                  Expanded(child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Tersedia Hari Ini',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: _todayOnly
+                                ? AppColors.warning
+                                : AppColors.textPrimary,
+                          )),
+                      Text('$todayCount mitra bisa datang hari ini juga',
+                          style: const TextStyle(
+                              fontSize: 11, color: AppColors.textHint)),
+                    ],
+                  )),
+                  Switch(
+                    value: _todayOnly,
+                    onChanged: (v) => setState(() => _todayOnly = v),
+                    activeColor: AppColors.warning,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                ]),
+              ),
+            ),
+          ),
+
           // ── Chip kategori aktif ──
           if (_activeCategory != null)
             Padding(
@@ -150,7 +198,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   ]),
                 ),
                 const SizedBox(width: 8),
-                Text('${_results.length} layanan ditemukan',
+                Text('${results.length} layanan ditemukan',
                     style: const TextStyle(
                         fontSize: 12, color: AppColors.textSecondary)),
               ]),
@@ -158,22 +206,23 @@ class _SearchScreenState extends State<SearchScreen> {
 
           // ── Filter kategori horizontal (chip row) ──
           if (_activeCategory == null)
-            _CategoryChipRow(
-              categories: DummyServices.categories
-                  .map((c) => c.$2)
-                  .toList(),
-              onSelect: _filterByCategory,
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _CategoryChipRow(
+                categories: DummyServices.categories.map((c) => c.$2).toList(),
+                onSelect: _filterByCategory,
+              ),
             ),
 
           // ── List hasil ──
           Expanded(
-            child: _results.isEmpty
-                ? const _EmptyState()
+            child: results.isEmpty
+                ? _EmptyState(todayOnly: _todayOnly)
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
-                    itemCount: _results.length,
+                    itemCount: results.length,
                     itemBuilder: (_, i) =>
-                        ServiceCard(service: _results[i]),
+                        ServiceCard(service: results[i]),
                   ),
           ),
         ],
@@ -219,22 +268,30 @@ class _CategoryChipRow extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  final bool todayOnly;
+  const _EmptyState({required this.todayOnly});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('😕', style: TextStyle(fontSize: 48)),
-        SizedBox(height: 12),
-        Text('Layanan tidak ditemukan',
-            style: TextStyle(fontSize: 15,
+        Text(todayOnly ? '⚡' : '😕', style: const TextStyle(fontSize: 48)),
+        const SizedBox(height: 12),
+        Text(
+            todayOnly
+                ? 'Belum ada mitra tersedia hari ini'
+                : 'Layanan tidak ditemukan',
+            style: const TextStyle(
+                fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary)),
-        SizedBox(height: 4),
-        Text('Coba kata kunci lain',
-            style: TextStyle(fontSize: 13,
-                color: AppColors.textSecondary)),
+        const SizedBox(height: 4),
+        Text(
+            todayOnly
+                ? 'Coba nonaktifkan filter atau cari kategori lain'
+                : 'Coba kata kunci lain',
+            style: const TextStyle(
+                fontSize: 13, color: AppColors.textSecondary)),
       ]),
     );
   }

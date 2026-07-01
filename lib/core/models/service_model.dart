@@ -61,6 +61,7 @@ class ServiceModel {
   final int reviewCount;
   final bool isVerified;
   final List<SubService> subServices;
+  final bool isAvailableToday; // ── Same Day Service ──
 
   const ServiceModel({
     required this.id,
@@ -73,6 +74,7 @@ class ServiceModel {
     required this.reviewCount,
     this.isVerified = true,
     this.subServices = const [],
+    this.isAvailableToday = false,
   });
 
   String get emoji {
@@ -129,6 +131,7 @@ class DummyServices {
       mitra: 'Bu Sari Laundry',
       description: 'Laundry kiloan berpengalaman 5 tahun. Cuci bersih, harum, dan rapi. Antar jemput gratis radius 3 km.',
       rating: 4.9, distanceKm: 1.2, reviewCount: 128,
+      isAvailableToday: true,
       subServices: [
         SubService(name: 'Cuci + Setrika', description: 'Pilih jenis pakaian yang akan dicuci',
           items: [
@@ -153,6 +156,7 @@ class DummyServices {
       mitra: 'Pak Dedi Teknik',
       description: 'Teknisi AC berpengalaman 10 tahun. Menangani semua merk. Bergaransi 7 hari.',
       rating: 4.8, distanceKm: 2.5, reviewCount: 94,
+      isAvailableToday: true,
       subServices: [
         SubService(name: 'Cuci AC', description: 'Pilih kapasitas dan tipe AC',
           items: [
