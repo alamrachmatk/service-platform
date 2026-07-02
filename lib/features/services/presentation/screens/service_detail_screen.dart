@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/service_model.dart';
 import '../../../booking/presentation/screens/booking_screen.dart';
+import '../../../chat/presentation/screens/pre_order_chat_screen.dart';
 
 class ServiceDetailScreen extends StatefulWidget {
   final ServiceModel service;
@@ -193,6 +194,7 @@ class _ServiceDetailScreenState extends State<ServiceDetailScreen> {
               totalPrice: _totalPrice,
               fmt: _fmt,
               onPressed: _proceed,
+              service: s,
             ),
           ),
         ],
@@ -590,39 +592,87 @@ class _BottomCta extends StatelessWidget {
   final double totalPrice;
   final String Function(double) fmt;
   final VoidCallback onPressed;
-  const _BottomCta({required this.hasSelected, required this.totalPrice,
-      required this.fmt, required this.onPressed});
+  final ServiceModel service;
+
+  const _BottomCta({
+    required this.hasSelected,
+    required this.totalPrice,
+    required this.fmt,
+    required this.onPressed,
+    required this.service,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
-      decoration: const BoxDecoration(color: Colors.white,
-          border: Border(top: BorderSide(color: AppColors.border, width: 0.5))),
-      child: Row(children: [
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Estimasi Harga',
-              style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          Text(hasSelected ? fmt(totalPrice) : 'Rp0',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700,
-                  color: hasSelected ? AppColors.primary : AppColors.textHint)),
-          if (!hasSelected)
-            const Text('Pilih layanan dahulu',
-                style: TextStyle(fontSize: 10, color: AppColors.textHint)),
-        ]),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: onPressed,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: hasSelected ? AppColors.primary : AppColors.border,
-              foregroundColor: hasSelected ? Colors.white : AppColors.textHint,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      padding: EdgeInsets.fromLTRB(
+          20, 12, 20, MediaQuery.of(context).padding.bottom + 12),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+      ),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        // ── Baris 1: Estimasi harga + Selanjutnya ──
+        Row(children: [
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Estimasi Harga',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            Text(
+              hasSelected ? fmt(totalPrice) : 'Rp0',
+              style: TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w700,
+                color: hasSelected ? AppColors.primary : AppColors.textHint,
+              ),
             ),
-            child: const Text('Selanjutnya',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+            if (!hasSelected)
+              const Text('Pilih layanan dahulu',
+                  style: TextStyle(fontSize: 10, color: AppColors.textHint)),
+          ]),
+          const SizedBox(width: 16),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: onPressed,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: hasSelected
+                    ? AppColors.primary
+                    : AppColors.border,
+                foregroundColor: hasSelected
+                    ? Colors.white
+                    : AppColors.textHint,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text('Selanjutnya',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 15)),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+
+        // ── Baris 2: Tombol Konsultasi Dulu ──
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PreOrderChatScreen(service: service),
+              ),
+            ),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 16),
+            label: const Text('Konsultasi Dulu (Gratis)',
+                style: TextStyle(
+                    fontSize: 13, fontWeight: FontWeight.w600)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary),
+              padding: const EdgeInsets.symmetric(vertical: 11),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
           ),
         ),
       ]),
