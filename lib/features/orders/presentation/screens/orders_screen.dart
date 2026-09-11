@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
-import '../../../tracking/presentation/screens/order_tracking_screen.dart';
+import '../../../tracking/presentation/screens/tracking_screen.dart';
 import '../../../review/presentation/screens/review_screen.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
 import '../../../cancellation/presentation/screens/cancellation_screen.dart';
@@ -312,7 +312,11 @@ class _ActionButtons extends StatelessWidget {
       Expanded(
         child: ElevatedButton.icon(
           onPressed: () => Navigator.push(context, MaterialPageRoute(
-              builder: (_) => OrderTrackingScreen(order: order))),
+              builder: (_) => TrackingScreen(
+                mitraName: order.mitraName,
+                serviceName: order.serviceName,
+                orderId: order.id,
+              ))),
           icon: const Icon(Icons.map_outlined, size: 14),
           label: const Text('Lacak',
               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
