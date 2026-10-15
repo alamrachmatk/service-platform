@@ -28,7 +28,7 @@ class _MainScreenState extends State<MainScreen> {
     _pages = [
       HomeTab(user: widget.user, onNavTap: switchTab),
       const SearchScreen(),
-      const OrdersScreen(),
+      OrdersScreen(onSwitchToHome: () => switchTab(0)),
       ProfileScreen(user: widget.user),
     ];
   }

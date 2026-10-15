@@ -10,6 +10,7 @@ import 'privacy_screen.dart';
 import '../../../promo/presentation/screens/promo_screen.dart';
 import '../../../help/presentation/screens/help_screen.dart';
 import '../../../recurring/presentation/screens/recurring_schedule_screen.dart';
+import '../../../wallet/presentation/screens/wallet_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
@@ -51,6 +52,14 @@ class ProfileScreen extends StatelessWidget {
             label: 'Alamat Tersimpan',
             onTap: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => const SavedAddressScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.account_balance_wallet_rounded,
+            label: 'JasaKu Pay',
+            subtitle: 'Dompet digital & saldo',
+            color: AppColors.primary,
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const WalletScreen())),
           ),
           _MenuItem(
             icon: Icons.payment_outlined,
@@ -156,12 +165,16 @@ class _ProfileCard extends StatelessWidget {
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
+  final String? subtitle;
+  final Color? color;
   final VoidCallback onTap;
 
-  const _MenuItem({required this.icon, required this.label, required this.onTap});
+  const _MenuItem({required this.icon, required this.label,
+      required this.onTap, this.subtitle, this.color});
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = color ?? AppColors.primary;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -173,10 +186,25 @@ class _MenuItem extends StatelessWidget {
           border: Border.all(color: AppColors.border, width: 0.5),
         ),
         child: Row(children: [
-          Icon(icon, color: AppColors.primary, size: 20),
+          Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor, size: 18),
+          ),
           const SizedBox(width: 14),
-          Expanded(child: Text(label, style: const TextStyle(fontSize: 14,
-              fontWeight: FontWeight.w500, color: AppColors.textPrimary))),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 14,
+                  fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+              if (subtitle != null)
+                Text(subtitle!, style: const TextStyle(fontSize: 11,
+                    color: AppColors.textSecondary)),
+            ],
+          )),
           const Icon(Icons.chevron_right_rounded,
               color: AppColors.textHint, size: 20),
         ]),
