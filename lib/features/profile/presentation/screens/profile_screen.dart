@@ -11,6 +11,7 @@ import '../../../promo/presentation/screens/promo_screen.dart';
 import '../../../help/presentation/screens/help_screen.dart';
 import '../../../recurring/presentation/screens/recurring_schedule_screen.dart';
 import '../../../wallet/presentation/screens/wallet_screen.dart';
+import '../../../settings/presentation/screens/settings_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
@@ -84,6 +85,14 @@ class ProfileScreen extends StatelessWidget {
             label: 'Promo & Voucher',
             onTap: () => Navigator.push(context, MaterialPageRoute(
                 builder: (_) => const PromoScreen())),
+          ),
+          _MenuItem(
+            icon: Icons.settings_outlined,
+            label: 'Pengaturan',
+            subtitle: 'Notifikasi, keamanan, dan preferensi',
+            color: AppColors.textSecondary,
+            onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const SettingsScreen())),
           ),
           _MenuItem(
             icon: Icons.help_outline_rounded,
