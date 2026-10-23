@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/services/wallet_service.dart';
 
 // ── Warna brand ──
 class _C {
@@ -69,7 +70,6 @@ class WalletTransaction {
 }
 
 // ── Dummy data ──
-double _walletBalance = 125000;
 
 final List<WalletTransaction> _walletTxs = [
   WalletTransaction(id:'WTX-001', description:'Top Up via GoPay',
@@ -149,7 +149,7 @@ class _WalletScreenState extends State<WalletScreen> {
     );
     if (result != null && result > 0) {
       setState(() {
-        _walletBalance += result;
+        WalletService().topUp(result);
         _walletTxs.insert(0, WalletTransaction(
           id: 'WTX-NEW-${DateTime.now().millisecondsSinceEpoch}',
           description: 'Top Up via JasaKu Pay',
@@ -168,7 +168,7 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   void _openWithdraw() async {
-    if (_walletBalance < 10000) {
+    if (WalletService().balance < 10000) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Saldo minimum untuk tarik adalah Rp 10.000'),
         backgroundColor: _C.error, behavior: SnackBarBehavior.floating,
@@ -179,7 +179,7 @@ class _WalletScreenState extends State<WalletScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _WithdrawSheet(balance: _walletBalance),
+      builder: (_) => _WithdrawSheet(balance: WalletService().balance),
     );
     if (result != null && result > 0) {
       // Minta PIN konfirmasi
@@ -191,7 +191,7 @@ class _WalletScreenState extends State<WalletScreen> {
       );
       if (pinOk == true) {
         setState(() {
-          _walletBalance -= result;
+          WalletService().deduct(result);
           _walletTxs.insert(0, WalletTransaction(
             id: 'WTX-WD-${DateTime.now().millisecondsSinceEpoch}',
             description: 'Tarik ke rekening',
@@ -242,7 +242,7 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(height: 6),
               Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Text(
-                  _balanceVisible ? _fmt(_walletBalance) : 'Rp ••••••',
+                  _balanceVisible ? _fmt(WalletService().balance) : 'Rp ••••••',
                   style: const TextStyle(fontSize: 32,
                       fontWeight: FontWeight.w700, color: Colors.white),
                 ),

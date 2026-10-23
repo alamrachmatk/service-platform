@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
+import '../../../../core/services/wallet_service.dart';
 import '../../../home/presentation/screens/main_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class PaymentScreen extends StatefulWidget {
 class _PaymentScreenState extends State<PaymentScreen> {
   String? _selectedMethod;
   bool _loading = false;
+  bool _useWallet = false;
 
   static const _methods = [
     _PaymentMethod(id: 'qris',    label: 'QRIS',               icon: Icons.qr_code_rounded,               color: Color(0xFF1565C0)),
@@ -27,9 +29,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   ];
 
   Future<void> _pay() async {
-    if (_selectedMethod == null) {
+    if (!_useWallet && _selectedMethod == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Pilih metode pembayaran terlebih dahulu'),
+        content: Text('Pilih metode pembayaran atau aktifkan JasaKu Pay'),
         backgroundColor: Colors.orange,
         behavior: SnackBarBehavior.floating,
       ));
@@ -140,7 +142,88 @@ class _PaymentScreenState extends State<PaymentScreen> {
               children: [
                 _OrderSummaryCard(order: o),
                 const SizedBox(height: 20),
-                const Text('Pilih Metode Pembayaran',
+                // ── JasaKu Pay ──
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: _useWallet
+                        ? AppColors.primary.withOpacity(0.06)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: _useWallet
+                          ? AppColors.primary
+                          : AppColors.border,
+                      width: _useWallet ? 1.5 : 0.5,
+                    ),
+                  ),
+                  child: Column(children: [
+                    Row(children: [
+                      Container(
+                        width: 40, height: 40,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                            Icons.account_balance_wallet_rounded,
+                            color: AppColors.primary, size: 20)),
+                      const SizedBox(width: 12),
+                      Expanded(child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        const Text('JasaKu Pay',
+                            style: TextStyle(fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary)),
+                        Text(
+                          'Saldo: Rp ${WalletService().balance.toInt().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: WalletService().balance > 0
+                                  ? AppColors.success
+                                  : AppColors.textSecondary,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ])),
+                      Switch(
+                        value: _useWallet,
+                        onChanged: WalletService().balance > 0
+                            ? (v) => setState(() {
+                                  _useWallet = v;
+                                  if (v) _selectedMethod = null;
+                                })
+                            : null,
+                        activeColor: AppColors.primary,
+                        materialTapTargetSize:
+                            MaterialTapTargetSize.shrinkWrap,
+                      ),
+                    ]),
+                    if (_useWallet) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withOpacity(0.07),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(children: [
+                          const Icon(Icons.check_circle_rounded,
+                              size: 14, color: AppColors.success),
+                          const SizedBox(width: 6),
+                          Expanded(child: Text(
+                            'Saldo JasaKu Pay akan digunakan untuk pembayaran ini',
+                            style: const TextStyle(fontSize: 11,
+                                color: AppColors.success, height: 1.4),
+                          )),
+                        ]),
+                      ),
+                    ],
+                  ]),
+                ),
+                const SizedBox(height: 16),
+
+                const Text('Atau Pilih Metode Lain',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary)),
                 const SizedBox(height: 6),

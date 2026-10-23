@@ -512,6 +512,29 @@ class _MitraHeader extends StatelessWidget {
           Text(' (${service.reviewCount} ulasan)', style: const TextStyle(
               fontSize: 13, color: AppColors.textSecondary)),
         ]),
+        const SizedBox(height: 6),
+        // ── Harga dari sub-layanan mitra ──
+        if (service.subServices.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              const Icon(Icons.payments_outlined,
+                  size: 14, color: AppColors.primary),
+              const SizedBox(width: 5),
+              Text(service.formattedPrice,
+                  style: const TextStyle(fontSize: 13,
+                      fontWeight: FontWeight.w700, color: AppColors.primary)),
+              const SizedBox(width: 4),
+              const Text('· Pilih item di bawah untuk rincian',
+                  style: TextStyle(fontSize: 10,
+                      color: AppColors.textSecondary)),
+            ]),
+          ),
         const SizedBox(height: 8),
         if (service.isVerified)
           Container(

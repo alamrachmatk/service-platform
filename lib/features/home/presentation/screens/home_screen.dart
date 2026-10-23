@@ -91,16 +91,20 @@ class HomeTab extends StatelessWidget {
               ),
             ),
 
-            // List layanan
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (ctx, i) => ServiceCard(service: DummyServices.all[i]),
-                  childCount: DummyServices.all.length,
-                ),
-              ),
-            ),
+            // List layanan atau empty state
+            DummyServices.all.isEmpty
+                ? const SliverFillRemaining(
+                    child: _EmptyHomeState())
+                : SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (ctx, i) =>
+                            ServiceCard(service: DummyServices.all[i]),
+                        childCount: DummyServices.all.length,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),
@@ -153,4 +157,98 @@ class _TopBar extends StatelessWidget {
       ]),
     );
   }
+}
+
+// ── Empty state saat tidak ada layanan ──
+class _EmptyHomeState extends StatelessWidget {
+  const _EmptyHomeState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Container(
+            width: 100, height: 100,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: const Center(
+              child: Text('🔍', style: TextStyle(fontSize: 48)),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text('Belum Ada Layanan\ndi Area Kamu',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary, height: 1.3)),
+          const SizedBox(height: 10),
+          const Text(
+            'Kami belum menjangkau lokasimu saat ini.\n'
+            'Coba perluas area pencarian atau cek kembali nanti.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14,
+                color: AppColors.textSecondary, height: 1.6),
+          ),
+          const SizedBox(height: 28),
+
+          // Suggestions
+          Row(children: [
+            _SuggestionChip(label: '📍 Ubah Lokasi', onTap: () {}),
+            const SizedBox(width: 10),
+            _SuggestionChip(label: '🔔 Beri Tahu Saya', onTap: () {}),
+          ]),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                  color: AppColors.primary.withOpacity(0.2)),
+            ),
+            child: const Row(children: [
+              Icon(Icons.info_outline_rounded,
+                  size: 16, color: AppColors.primary),
+              SizedBox(width: 10),
+              Expanded(child: Text(
+                'JasaKu terus berkembang ke lebih banyak kota. '
+                'Daftarkan emailmu untuk notifikasi saat JasaKu '
+                'hadir di kotamu!',
+                style: TextStyle(fontSize: 12,
+                    color: AppColors.primary, height: 1.5),
+              )),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+class _SuggestionChip extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _SuggestionChip({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Center(child: Text(label, style: const TextStyle(
+            fontSize: 13, fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary))),
+      ),
+    ),
+  );
 }
