@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../../core/models/wallet_transaction_model.dart';
 import '../../../../core/services/wallet_service.dart';
 
 // ── Warna brand ──
@@ -17,80 +18,6 @@ class _C {
   static const error        = Color(0xFFE53935);
   static const info         = Color(0xFF1E88E5);
 }
-
-// ── Model transaksi dompet ──
-enum WalletTxType { topup, payment, refund, withdrawal }
-
-extension WalletTxTypeX on WalletTxType {
-  String get label {
-    switch (this) {
-      case WalletTxType.topup:      return 'Top Up';
-      case WalletTxType.payment:    return 'Pembayaran';
-      case WalletTxType.refund:     return 'Refund';
-      case WalletTxType.withdrawal: return 'Tarik Saldo';
-    }
-  }
-  String get emoji {
-    switch (this) {
-      case WalletTxType.topup:      return '💳';
-      case WalletTxType.payment:    return '🧾';
-      case WalletTxType.refund:     return '↩️';
-      case WalletTxType.withdrawal: return '🏦';
-    }
-  }
-  bool get isCredit =>
-      this == WalletTxType.topup || this == WalletTxType.refund;
-}
-
-class WalletTransaction {
-  final String id, description;
-  final double amount;
-  final WalletTxType type;
-  final DateTime date;
-
-  const WalletTransaction({
-    required this.id, required this.description,
-    required this.amount, required this.type, required this.date,
-  });
-
-  String get formattedAmount {
-    final prefix = type.isCredit ? '+' : '-';
-    if (amount >= 1000000) return '$prefix Rp ${(amount/1000000).toStringAsFixed(1)}jt';
-    if (amount >= 1000)    return '$prefix Rp ${(amount/1000).toStringAsFixed(0)}rb';
-    return '$prefix Rp ${amount.toStringAsFixed(0)}';
-  }
-
-  String get formattedDate {
-    const months = ['','Jan','Feb','Mar','Apr','Mei','Jun',
-        'Jul','Agu','Sep','Okt','Nov','Des'];
-    final h = date.hour.toString().padLeft(2,'0');
-    final m = date.minute.toString().padLeft(2,'0');
-    return '${date.day} ${months[date.month]} · $h:$m';
-  }
-}
-
-// ── Dummy data ──
-
-final List<WalletTransaction> _walletTxs = [
-  WalletTransaction(id:'WTX-001', description:'Top Up via GoPay',
-      amount:100000, type:WalletTxType.topup,
-      date:DateTime.now().subtract(const Duration(hours:2))),
-  WalletTransaction(id:'WTX-002', description:'Bayar Servis AC Split',
-      amount:150000, type:WalletTxType.payment,
-      date:DateTime.now().subtract(const Duration(days:1))),
-  WalletTransaction(id:'WTX-003', description:'Refund Pesanan ORD-005',
-      amount:75000, type:WalletTxType.refund,
-      date:DateTime.now().subtract(const Duration(days:2))),
-  WalletTransaction(id:'WTX-004', description:'Top Up via Transfer BCA',
-      amount:200000, type:WalletTxType.topup,
-      date:DateTime.now().subtract(const Duration(days:3))),
-  WalletTransaction(id:'WTX-005', description:'Bayar Bersih-Bersih Rumah',
-      amount:100000, type:WalletTxType.payment,
-      date:DateTime.now().subtract(const Duration(days:5))),
-  WalletTransaction(id:'WTX-006', description:'Tarik ke BCA ••4521',
-      amount:50000, type:WalletTxType.withdrawal,
-      date:DateTime.now().subtract(const Duration(days:7))),
-];
 
 // ── Payment methods ──
 const _topupMethods = [
@@ -134,10 +61,11 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   List<WalletTransaction> get _filtered {
-    if (_filterType == 'Semua') return _walletTxs;
+    final all = WalletService().transactions;
+    if (_filterType == 'Semua') return all;
     final map = {'Top Up': WalletTxType.topup, 'Pembayaran': WalletTxType.payment,
         'Refund': WalletTxType.refund, 'Tarik': WalletTxType.withdrawal};
-    return _walletTxs.where((t) => t.type == map[_filterType]).toList();
+    return all.where((t) => t.type == map[_filterType]).toList();
   }
 
   void _openTopUp() async {
@@ -148,15 +76,7 @@ class _WalletScreenState extends State<WalletScreen> {
       builder: (_) => const _TopUpSheet(),
     );
     if (result != null && result > 0) {
-      setState(() {
-        WalletService().topUp(result);
-        _walletTxs.insert(0, WalletTransaction(
-          id: 'WTX-NEW-${DateTime.now().millisecondsSinceEpoch}',
-          description: 'Top Up via JasaKu Pay',
-          amount: result, type: WalletTxType.topup,
-          date: DateTime.now(),
-        ));
-      });
+      setState(() => WalletService().topUp(result));
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Top up ${_fmt(result)} berhasil!'),
@@ -190,15 +110,7 @@ class _WalletScreenState extends State<WalletScreen> {
         builder: (_) => const _PinSheet(),
       );
       if (pinOk == true) {
-        setState(() {
-          WalletService().deduct(result);
-          _walletTxs.insert(0, WalletTransaction(
-            id: 'WTX-WD-${DateTime.now().millisecondsSinceEpoch}',
-            description: 'Tarik ke rekening',
-            amount: result, type: WalletTxType.withdrawal,
-            date: DateTime.now(),
-          ));
-        });
+        setState(() => WalletService().withdraw(result));
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Penarikan ${_fmt(result)} berhasil diajukan!'),

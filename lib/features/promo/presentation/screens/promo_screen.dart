@@ -588,7 +588,22 @@ class _ReferralTab extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () {
+                  // Salin pesan ajakan siap tempel. Untuk dialog bagikan bawaan
+                  // sistem (WhatsApp dll.) pasang paket share_plus.
+                  Clipboard.setData(ClipboardData(
+                      text: 'Yuk pakai JasaKu! Gunakan kode referral '
+                          '$_kodeReferral dan dapatkan voucher untuk '
+                          'pesanan pertamamu.'));
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: const Text(
+                        'Pesan ajakan disalin. Tempel di WhatsApp atau chat temanmu.'),
+                    backgroundColor: AppColors.success,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ));
+                },
                 icon: const Icon(Icons.share_outlined, size: 18),
                 label: const Text('Bagikan ke Teman',
                     style: TextStyle(fontWeight: FontWeight.w700)),

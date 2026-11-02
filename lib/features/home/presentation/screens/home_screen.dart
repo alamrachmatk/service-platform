@@ -3,6 +3,7 @@ import '../../../notifications/presentation/screens/notifications_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/user_model.dart';
 import '../../../../core/models/service_model.dart';
+import '../../../profile/presentation/screens/saved_address_screen.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/category_list.dart';
 import '../widgets/service_card.dart';
@@ -197,9 +198,14 @@ class _EmptyHomeState extends StatelessWidget {
 
           // Suggestions
           Row(children: [
-            _SuggestionChip(label: '📍 Ubah Lokasi', onTap: () {}),
+            _SuggestionChip(
+                label: '📍 Ubah Lokasi',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => const SavedAddressScreen()))),
             const SizedBox(width: 10),
-            _SuggestionChip(label: '🔔 Beri Tahu Saya', onTap: () {}),
+            _SuggestionChip(
+                label: '🔔 Beri Tahu Saya',
+                onTap: () => _showNotifyMeSheet(context)),
           ]),
           const SizedBox(height: 12),
           Container(
@@ -251,4 +257,115 @@ class _SuggestionChip extends StatelessWidget {
       ),
     ),
   );
+}
+
+
+// ── Sheet "Beri Tahu Saya" ──
+void _showNotifyMeSheet(BuildContext context) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => const _NotifyMeSheet(),
+  );
+}
+
+class _NotifyMeSheet extends StatefulWidget {
+  const _NotifyMeSheet();
+
+  @override
+  State<_NotifyMeSheet> createState() => _NotifyMeSheetState();
+}
+
+class _NotifyMeSheetState extends State<_NotifyMeSheet> {
+  final _emailCtrl = TextEditingController();
+
+  bool get _valid => RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+      .hasMatch(_emailCtrl.text.trim());
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_valid) return;
+    // TODO: kirim email ke backend untuk daftar tunggu area
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.pop(context);
+    messenger.showSnackBar(SnackBar(
+      content: const Text('Terima kasih! Kami akan mengabari saat JasaKu hadir di areamu.'),
+      backgroundColor: AppColors.success,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottomPad = MediaQuery.of(context).viewInsets.bottom +
+        MediaQuery.of(context).padding.bottom;
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.fromLTRB(20, 12, 20, bottomPad + 20),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Center(child: Container(width: 40, height: 4,
+            decoration: BoxDecoration(color: AppColors.border,
+                borderRadius: BorderRadius.circular(2)))),
+        const SizedBox(height: 16),
+        const Text('Beri Tahu Saya', style: TextStyle(fontSize: 17,
+            fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+        const SizedBox(height: 6),
+        const Text(
+          'Masukkan emailmu. Kami kabari begitu mitra JasaKu tersedia di areamu.',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 13,
+              color: AppColors.textSecondary, height: 1.5)),
+        const SizedBox(height: 18),
+        TextField(
+          controller: _emailCtrl,
+          keyboardType: TextInputType.emailAddress,
+          onChanged: (_) => setState(() {}),
+          style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: 'nama@email.com',
+            hintStyle: const TextStyle(color: AppColors.textHint),
+            prefixIcon: const Icon(Icons.email_outlined,
+                size: 18, color: AppColors.textHint),
+            filled: true, fillColor: AppColors.background,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.border)),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.border)),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                    color: AppColors.primary, width: 1.5)),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          width: double.infinity, height: 50,
+          child: ElevatedButton(
+            onPressed: _valid ? _submit : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: AppColors.border,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
+            child: const Text('Daftarkan Email',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+          ),
+        ),
+      ]),
+    );
+  }
 }

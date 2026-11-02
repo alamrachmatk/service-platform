@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'change_password_sheet.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -27,6 +29,51 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String _bahasa    = 'Indonesia';
 
   static const _bahasaOptions = ['Indonesia', 'English'];
+
+  SharedPreferences? _prefs;
+
+  // Sesi login (dummy) — TODO: ambil dari backend
+  final List<_Session> _sessions = [
+    const _Session(id: 'S1', device: 'Samsung Galaxy S23',
+        location: 'Bogor, ID', time: 'Sekarang', isCurrent: true),
+    const _Session(id: 'S2', device: 'iPhone 14 Pro',
+        location: 'Jakarta, ID', time: '2 hari lalu', isCurrent: false),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrefs();
+  }
+
+  Future<void> _loadPrefs() async {
+    final p = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _prefs = p;
+      _notifPesanan    = p.getBool('set_notif_pesanan')    ?? _notifPesanan;
+      _notifChat       = p.getBool('set_notif_chat')       ?? _notifChat;
+      _notifPembayaran = p.getBool('set_notif_pembayaran') ?? _notifPembayaran;
+      _notifPromo      = p.getBool('set_notif_promo')      ?? _notifPromo;
+      _notifPengingat  = p.getBool('set_notif_pengingat')  ?? _notifPengingat;
+      _notifUlasan     = p.getBool('set_notif_ulasan')     ?? _notifUlasan;
+      _suaraNotif      = p.getBool('set_suara_notif')      ?? _suaraNotif;
+      _getarNotif      = p.getBool('set_getar_notif')      ?? _getarNotif;
+      _suaraPesan      = p.getBool('set_suara_pesan')      ?? _suaraPesan;
+      _modeMalam       = p.getBool('set_mode_malam')       ?? _modeMalam;
+      _bahasa          = p.getString('set_bahasa')         ?? _bahasa;
+    });
+  }
+
+  void _persist(String key, Object value) {
+    final p = _prefs;
+    if (p == null) return;
+    if (value is bool) {
+      p.setBool(key, value);
+    } else if (value is String) {
+      p.setString(key, value);
+    }
+  }
 
   void _snack(String msg, {Color color = AppColors.success}) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -70,7 +117,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Update Pesanan',
               subtitle: 'Status perjalanan dan penyelesaian mitra',
               value: _notifPesanan,
-              onChanged: (v) => setState(() => _notifPesanan = v),
+              onChanged: (v) {
+                setState(() => _notifPesanan = v);
+                _persist('set_notif_pesanan', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -79,7 +129,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Pesan Chat',
               subtitle: 'Pesan dari mitra atau JasaKu',
               value: _notifChat,
-              onChanged: (v) => setState(() => _notifChat = v),
+              onChanged: (v) {
+                setState(() => _notifChat = v);
+                _persist('set_notif_chat', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -88,7 +141,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Pembayaran & Saldo',
               subtitle: 'Konfirmasi pembayaran dan top up JasaKu Pay',
               value: _notifPembayaran,
-              onChanged: (v) => setState(() => _notifPembayaran = v),
+              onChanged: (v) {
+                setState(() => _notifPembayaran = v);
+                _persist('set_notif_pembayaran', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -97,7 +153,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Promo & Voucher',
               subtitle: 'Penawaran spesial dan voucher baru',
               value: _notifPromo,
-              onChanged: (v) => setState(() => _notifPromo = v),
+              onChanged: (v) {
+                setState(() => _notifPromo = v);
+                _persist('set_notif_promo', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -106,7 +165,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Pengingat Jadwal',
               subtitle: 'Pengingat H-1 sebelum jadwal layanan',
               value: _notifPengingat,
-              onChanged: (v) => setState(() => _notifPengingat = v),
+              onChanged: (v) {
+                setState(() => _notifPengingat = v);
+                _persist('set_notif_pengingat', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -115,7 +177,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Minta Ulasan',
               subtitle: 'Pengingat untuk beri ulasan setelah layanan',
               value: _notifUlasan,
-              onChanged: (v) => setState(() => _notifUlasan = v),
+              onChanged: (v) {
+                setState(() => _notifUlasan = v);
+                _persist('set_notif_ulasan', v);
+              },
             ),
           ]),
           const SizedBox(height: 16),
@@ -131,7 +196,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Suara Notifikasi',
               subtitle: 'Bunyi saat ada notifikasi masuk',
               value: _suaraNotif,
-              onChanged: (v) => setState(() => _suaraNotif = v),
+              onChanged: (v) {
+                setState(() => _suaraNotif = v);
+                _persist('set_suara_notif', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -140,7 +208,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Getar',
               subtitle: 'Getaran saat ada notifikasi masuk',
               value: _getarNotif,
-              onChanged: (v) => setState(() => _getarNotif = v),
+              onChanged: (v) {
+                setState(() => _getarNotif = v);
+                _persist('set_getar_notif', v);
+              },
             ),
             const _Divider(),
             _SwitchTile(
@@ -149,7 +220,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Suara Pesan',
               subtitle: 'Bunyi saat menerima pesan chat',
               value: _suaraPesan,
-              onChanged: (v) => setState(() => _suaraPesan = v),
+              onChanged: (v) {
+                setState(() => _suaraPesan = v);
+                _persist('set_suara_pesan', v);
+              },
             ),
           ]),
           const SizedBox(height: 16),
@@ -167,6 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: _modeMalam,
               onChanged: (v) {
                 setState(() => _modeMalam = v);
+                _persist('set_mode_malam', v);
                 _snack('Mode malam ${v ? 'aktif' : 'nonaktif'} '
                     '(tersedia di versi berikutnya)',
                     color: AppColors.info);
@@ -181,6 +256,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               options: _bahasaOptions,
               onChanged: (v) {
                 setState(() => _bahasa = v);
+                _persist('set_bahasa', v);
                 _snack('Bahasa diubah ke $v');
               },
             ),
@@ -245,14 +321,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: 'Izin Lokasi',
               subtitle: 'Kelola akses lokasi aplikasi',
               onTap: () => _snack('Buka pengaturan lokasi HP'),
-            ),
-            const _Divider(),
-            _NavTile(
-              icon: Icons.delete_outline_rounded,
-              iconColor: AppColors.error,
-              title: 'Hapus Riwayat Pencarian',
-              subtitle: 'Bersihkan riwayat pencarian layanan',
-              onTap: () => _confirmClearHistory(),
             ),
           ]),
           const SizedBox(height: 16),
@@ -326,70 +394,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showChangePasswordSheet() {
-    final oldCtrl = TextEditingController();
-    final newCtrl = TextEditingController();
-    final confCtrl = TextEditingController();
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => Padding(
-        padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Container(
-          decoration: const BoxDecoration(color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-          padding: EdgeInsets.fromLTRB(20, 12, 20,
-              MediaQuery.of(context).padding.bottom + 20),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Center(child: Container(width: 40, height: 4,
-                decoration: BoxDecoration(color: AppColors.border,
-                    borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 16),
-            const Text('Ubah Password', style: TextStyle(fontSize: 17,
-                fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-            const SizedBox(height: 20),
-            _PwField(ctrl: oldCtrl, label: 'Password Lama'),
-            const SizedBox(height: 12),
-            _PwField(ctrl: newCtrl, label: 'Password Baru'),
-            const SizedBox(height: 12),
-            _PwField(ctrl: confCtrl, label: 'Konfirmasi Password Baru'),
-            const SizedBox(height: 20),
-            Row(children: [
-              Expanded(child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.textSecondary,
-                  side: const BorderSide(color: AppColors.border),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                ),
-                child: const Text('Batal',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
-              )),
-              const SizedBox(width: 12),
-              Expanded(child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _snack('Password berhasil diubah');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white, elevation: 0,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                ),
-                child: const Text('Simpan',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
-              )),
-            ]),
-          ]),
-        ),
-      ),
-    );
+  Future<void> _showChangePasswordSheet() async {
+    final ok = await showChangePasswordSheet(context);
+    if (ok == true && mounted) _snack('Password berhasil diubah');
   }
 
   void _showActiveSessionsSheet() {
@@ -397,44 +404,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (_) => Container(
-        decoration: const BoxDecoration(color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-        padding: EdgeInsets.fromLTRB(20, 12, 20,
-            MediaQuery.of(context).padding.bottom + 20),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Center(child: Container(width: 40, height: 4,
-              decoration: BoxDecoration(color: AppColors.border,
-                  borderRadius: BorderRadius.circular(2)))),
-          const SizedBox(height: 16),
-          const Text('Sesi Aktif', style: TextStyle(fontSize: 17,
-              fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-          const SizedBox(height: 16),
-          _SessionTile(device: 'Samsung Galaxy S23', location: 'Bogor, ID',
-              time: 'Sekarang', isCurrent: true),
-          const Divider(),
-          _SessionTile(device: 'iPhone 14 Pro', location: 'Jakarta, ID',
-              time: '2 hari lalu', isCurrent: false),
-          const SizedBox(height: 16),
-          SizedBox(width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _snack('Semua sesi lain berhasil dikeluarkan',
-                    color: AppColors.error);
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-                padding: const EdgeInsets.symmetric(vertical: 13),
-              ),
-              child: const Text('Keluarkan Semua Sesi Lain',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ),
-        ]),
+      builder: (sheetCtx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          final hasOthers = _sessions.any((s) => !s.isCurrent);
+          return Container(
+            decoration: const BoxDecoration(color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+            padding: EdgeInsets.fromLTRB(20, 12, 20,
+                MediaQuery.of(ctx).padding.bottom + 20),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Center(child: Container(width: 40, height: 4,
+                  decoration: BoxDecoration(color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2)))),
+              const SizedBox(height: 16),
+              const Text('Sesi Aktif', style: TextStyle(fontSize: 17,
+                  fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
+              const SizedBox(height: 16),
+              ...List.generate(_sessions.length, (i) {
+                final s = _sessions[i];
+                return Column(children: [
+                  _SessionTile(
+                    device: s.device, location: s.location,
+                    time: s.time, isCurrent: s.isCurrent,
+                    onLogout: s.isCurrent ? null : () {
+                      setState(() =>
+                          _sessions.removeWhere((x) => x.id == s.id));
+                      setSheet(() {});
+                      _snack('${s.device} dikeluarkan',
+                          color: AppColors.error);
+                    },
+                  ),
+                  if (i != _sessions.length - 1) const Divider(),
+                ]);
+              }),
+              const SizedBox(height: 16),
+              if (hasOthers)
+                SizedBox(width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      setState(() =>
+                          _sessions.removeWhere((s) => !s.isCurrent));
+                      Navigator.pop(sheetCtx);
+                      _snack('Semua sesi lain berhasil dikeluarkan',
+                          color: AppColors.error);
+                    },
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.error,
+                      side: const BorderSide(color: AppColors.error),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                    ),
+                    child: const Text('Keluarkan Semua Sesi Lain',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                )
+              else
+                const Text('Tidak ada sesi lain yang aktif',
+                    style: TextStyle(fontSize: 12,
+                        color: AppColors.textSecondary)),
+            ]),
+          );
+        },
       ),
     );
   }
@@ -479,38 +510,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ]),
-      ),
-    );
-  }
-
-  void _confirmClearHistory() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Hapus Riwayat?',
-            style: TextStyle(fontWeight: FontWeight.w700)),
-        content: const Text('Semua riwayat pencarian akan dihapus.',
-            style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context),
-              child: const Text('Batal',
-                  style: TextStyle(color: AppColors.textSecondary))),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _snack('Riwayat pencarian berhasil dihapus');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white, elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Text('Hapus',
-                style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ],
       ),
     );
   }
@@ -661,60 +660,12 @@ class _SelectTile extends StatelessWidget {
   );
 }
 
-class _PwField extends StatefulWidget {
-  final TextEditingController ctrl;
-  final String label;
-  const _PwField({required this.ctrl, required this.label});
-
-  @override
-  State<_PwField> createState() => _PwFieldState();
-}
-
-class _PwFieldState extends State<_PwField> {
-  bool _obscure = true;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(widget.label, style: const TextStyle(fontSize: 12,
-          fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
-      const SizedBox(height: 6),
-      TextField(
-        controller: widget.ctrl, obscureText: _obscure,
-        style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
-        decoration: InputDecoration(
-          hintText: '••••••••',
-          hintStyle: const TextStyle(color: AppColors.textHint),
-          suffixIcon: IconButton(
-            icon: Icon(_obscure ? Icons.visibility_outlined
-                : Icons.visibility_off_outlined,
-                size: 18, color: AppColors.textHint),
-            onPressed: () => setState(() => _obscure = !_obscure),
-          ),
-          filled: true, fillColor: AppColors.background,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border)),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppColors.border)),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                  color: AppColors.primary, width: 1.5)),
-          contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12, vertical: 12),
-        ),
-      ),
-    ],
-  );
-}
-
 class _SessionTile extends StatelessWidget {
   final String device, location, time;
   final bool isCurrent;
+  final VoidCallback? onLogout;
   const _SessionTile({required this.device, required this.location,
-      required this.time, required this.isCurrent});
+      required this.time, required this.isCurrent, this.onLogout});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -750,11 +701,19 @@ class _SessionTile extends StatelessWidget {
         )
       else
         TextButton(
-          onPressed: () {},
+          onPressed: onLogout,
           child: const Text('Keluarkan',
               style: TextStyle(fontSize: 11, color: AppColors.error,
                   fontWeight: FontWeight.w600)),
         ),
     ]),
   );
+}
+
+
+class _Session {
+  final String id, device, location, time;
+  final bool isCurrent;
+  const _Session({required this.id, required this.device,
+      required this.location, required this.time, required this.isCurrent});
 }

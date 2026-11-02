@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/utils/photo_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
 
@@ -42,6 +43,15 @@ class _ChatScreenState extends State<ChatScreen> {
     final h = now.hour.toString().padLeft(2, '0');
     final m = now.minute.toString().padLeft(2, '0');
     return '$h:$m';
+  }
+
+  Future<void> _attach() async {
+    final path = await pickPhoto(context, title: 'Kirim Foto');
+    if (path == null || !mounted) return;
+    // TODO: kirim file ke backend; saat ini hanya menampilkan penanda foto
+    setState(() => _messages.add(
+        _Msg(text: '📷 Foto', isMe: true, time: _timeNow())));
+    _scrollToBottom();
   }
 
   void _send() {
@@ -191,6 +201,7 @@ class _ChatScreenState extends State<ChatScreen> {
           _ChatInput(
             controller: _msgCtrl,
             onSend: _send,
+            onAttach: _attach,
           ),
         ],
       ),
@@ -415,7 +426,9 @@ class _QuickReplies extends StatelessWidget {
 class _ChatInput extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
-  const _ChatInput({required this.controller, required this.onSend});
+  final VoidCallback onAttach;
+  const _ChatInput({required this.controller, required this.onSend,
+      required this.onAttach});
 
   @override
   Widget build(BuildContext context) {
@@ -429,7 +442,7 @@ class _ChatInput extends StatelessWidget {
       child: Row(children: [
         // Tombol lampiran
         GestureDetector(
-          onTap: () {},
+          onTap: onAttach,
           child: Container(
             width: 38, height: 38,
             decoration: BoxDecoration(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/photo_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
 
@@ -363,7 +364,25 @@ class _WriteReviewCard extends StatelessWidget {
   }
 }
 
-class _PhotoUploadCard extends StatelessWidget {
+class _PhotoUploadCard extends StatefulWidget {
+  const _PhotoUploadCard();
+
+  @override
+  State<_PhotoUploadCard> createState() => _PhotoUploadCardState();
+}
+
+class _PhotoUploadCardState extends State<_PhotoUploadCard> {
+  static const _max = 3;
+  // TODO: kirim daftar foto ini bersama ulasan saat backend siap
+  final List<String> _photos = [];
+
+  Future<void> _add() async {
+    if (_photos.length >= _max) return;
+    final path = await pickPhoto(context, title: 'Foto Hasil Kerja');
+    if (path == null || !mounted) return;
+    setState(() => _photos.add(path));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -374,34 +393,68 @@ class _PhotoUploadCard extends StatelessWidget {
         border: Border.all(color: AppColors.border, width: 0.5),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Foto Hasil Kerja (opsional)',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        Row(children: [
+          const Expanded(child: Text('Foto Hasil Kerja (opsional)',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700))),
+          Text('${_photos.length}/$_max', style: const TextStyle(
+              fontSize: 12, color: AppColors.textHint)),
+        ]),
         const SizedBox(height: 4),
         const Text('Bagikan foto hasil pekerjaan untuk ulasan lebih lengkap',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
         const SizedBox(height: 12),
-        GestureDetector(
-          onTap: () {},
-          child: Container(
-            height: 90,
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.border,
-                  style: BorderStyle.solid),
-            ),
-            child: const Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.add_photo_alternate_outlined,
-                    color: AppColors.primary, size: 28),
-                SizedBox(height: 6),
-                Text('Tambah foto',
-                    style: TextStyle(fontSize: 12,
-                        color: AppColors.primary, fontWeight: FontWeight.w600)),
-              ],
-            ),
-          ),
+        SizedBox(
+          height: 84,
+          child: ListView(scrollDirection: Axis.horizontal, children: [
+            ...List.generate(_photos.length, (i) => Stack(children: [
+              Container(
+                width: 80, height: 80,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: const Icon(Icons.image_rounded,
+                    color: AppColors.primary, size: 30),
+              ),
+              Positioned(top: 2, right: 12,
+                child: GestureDetector(
+                  onTap: () => setState(() => _photos.removeAt(i)),
+                  child: Container(
+                    width: 20, height: 20,
+                    decoration: const BoxDecoration(
+                        color: AppColors.error, shape: BoxShape.circle),
+                    child: const Icon(Icons.close_rounded,
+                        color: Colors.white, size: 12),
+                  ),
+                )),
+            ])),
+            if (_photos.length < _max)
+              GestureDetector(
+                onTap: _add,
+                child: Container(
+                  width: 80, height: 80,
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.add_photo_alternate_outlined,
+                          color: AppColors.primary, size: 26),
+                      SizedBox(height: 4),
+                      Text('Tambah foto', style: TextStyle(fontSize: 10,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
+              ),
+          ]),
         ),
       ]),
     );

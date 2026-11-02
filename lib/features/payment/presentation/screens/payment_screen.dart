@@ -28,10 +28,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _PaymentMethod(id: 'cod',     label: 'Bayar di Tempat (COD)', icon: Icons.payments_rounded,            color: Color(0xFF43A047)),
   ];
 
+  // ── Rincian pembayaran: berapa dari JasaKu Pay, berapa dari metode lain ──
+  double get _total => widget.order.price;
+
+  double get _walletUse {
+    if (!_useWallet) return 0;
+    final bal = WalletService().balance;
+    return bal < _total ? bal : _total;
+  }
+
+  double get _remaining => _total - _walletUse;
+  bool get _walletCoversAll => _useWallet && _remaining <= 0;
+
+  String get _methodsTitle {
+    if (_walletCoversAll) return 'Tidak perlu metode lain';
+    if (_useWallet) return 'Pilih Metode untuk Sisa Tagihan';
+    return 'Atau Pilih Metode Lain';
+  }
+
   Future<void> _pay() async {
-    if (!_useWallet && _selectedMethod == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Pilih metode pembayaran atau aktifkan JasaKu Pay'),
+    if (_remaining > 0 && _selectedMethod == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(_useWallet
+            ? 'Pilih metode pembayaran untuk sisa tagihan'
+            : 'Pilih metode pembayaran atau aktifkan JasaKu Pay'),
         backgroundColor: Colors.orange,
         behavior: SnackBarBehavior.floating,
       ));
@@ -39,8 +59,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
     setState(() => _loading = true);
     await Future.delayed(const Duration(seconds: 2));
-    setState(() => _loading = false);
     if (!mounted) return;
+
+    // Potong saldo JasaKu Pay setelah pembayaran terkonfirmasi
+    if (_walletUse > 0) {
+      final ok = WalletService().pay(_walletUse,
+          description: 'Bayar ${widget.order.serviceName}');
+      if (!ok) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Saldo JasaKu Pay tidak cukup'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ));
+        return;
+      }
+    }
+    setState(() => _loading = false);
     await _showSuccessDialog();
   }
 
@@ -191,7 +226,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         onChanged: WalletService().balance > 0
                             ? (v) => setState(() {
                                   _useWallet = v;
-                                  if (v) _selectedMethod = null;
+                                  if (v && WalletService().balance >= _total) {
+                                    _selectedMethod = null;
+                                  }
                                 })
                             : null,
                         activeColor: AppColors.primary,
@@ -200,22 +237,45 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       ),
                     ]),
                     if (_useWallet) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: AppColors.success.withOpacity(0.07),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Row(children: [
-                          const Icon(Icons.check_circle_rounded,
-                              size: 14, color: AppColors.success),
-                          const SizedBox(width: 6),
-                          Expanded(child: Text(
-                            'Saldo JasaKu Pay akan digunakan untuk pembayaran ini',
-                            style: const TextStyle(fontSize: 11,
-                                color: AppColors.success, height: 1.4),
-                          )),
+                        child: Column(children: [
+                          _WalletRow(label: 'Total pesanan', value: _rp(_total)),
+                          const SizedBox(height: 6),
+                          _WalletRow(
+                              label: 'Dibayar dengan JasaKu Pay',
+                              value: '- ${_rp(_walletUse)}',
+                              valueColor: AppColors.success),
+                          const Divider(height: 16),
+                          if (_walletCoversAll)
+                            const Row(children: [
+                              Icon(Icons.check_circle_rounded,
+                                  size: 14, color: AppColors.success),
+                              SizedBox(width: 6),
+                              Expanded(child: Text(
+                                'Seluruhnya dibayar dengan JasaKu Pay',
+                                style: TextStyle(fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.success),
+                              )),
+                            ])
+                          else ...[
+                            _WalletRow(
+                                label: 'Sisa dibayar via metode lain',
+                                value: _rp(_remaining),
+                                bold: true, valueColor: AppColors.primary),
+                            const SizedBox(height: 4),
+                            const Text(
+                              'Saldo belum cukup. Pilih metode di bawah untuk sisa tagihan.',
+                              style: TextStyle(fontSize: 11,
+                                  color: AppColors.textSecondary, height: 1.4),
+                            ),
+                          ],
                         ]),
                       ),
                     ],
@@ -223,13 +283,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                const Text('Atau Pilih Metode Lain',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
+                Text(_methodsTitle,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary)),
                 const SizedBox(height: 6),
                 const Text('Dana tersimpan aman sampai pekerjaan selesai (escrow)',
                     style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
                 const SizedBox(height: 12),
+                IgnorePointer(
+                  ignoring: _walletCoversAll,
+                  child: Opacity(
+                    opacity: _walletCoversAll ? 0.4 : 1,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                 _MethodGroup(
                   groupLabel: 'Dompet Digital',
                   methods: _methods.where((m) =>
@@ -254,12 +321,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 ),
                 if (_selectedMethod == 'qris') ...[
                   const SizedBox(height: 16),
-                  _QrisInfo(amount: o.price),
+                  _QrisInfo(amount: _remaining),
                 ],
                 if (['bca', 'mandiri', 'bni'].contains(_selectedMethod)) ...[
                   const SizedBox(height: 16),
-                  _VaInfo(bank: _selectedMethod!, amount: o.price),
+                  _VaInfo(bank: _selectedMethod!, amount: _remaining),
                 ],
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -589,4 +660,31 @@ class _PaymentBottomBar extends StatelessWidget {
       ]),
     );
   }
+}
+
+
+String _rp(double v) {
+  final s = v.round().toString();
+  return 'Rp ${s.replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (m) => '.')}';
+}
+
+class _WalletRow extends StatelessWidget {
+  final String label, value;
+  final bool bold;
+  final Color? valueColor;
+  const _WalletRow({required this.label, required this.value,
+      this.bold = false, this.valueColor});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Expanded(child: Text(label, style: TextStyle(fontSize: bold ? 13 : 12,
+          fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+          color: bold ? AppColors.textPrimary : AppColors.textSecondary))),
+      Text(value, style: TextStyle(fontSize: bold ? 14 : 12,
+          fontWeight: bold ? FontWeight.w800 : FontWeight.w600,
+          color: valueColor ?? AppColors.textPrimary)),
+    ],
+  );
 }

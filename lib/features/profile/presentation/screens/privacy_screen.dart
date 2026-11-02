@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../settings/presentation/screens/change_password_sheet.dart';
 
 class PrivacyScreen extends StatefulWidget {
   const PrivacyScreen({super.key});
@@ -48,7 +49,10 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
               iconColor: AppColors.primary,
               title: 'Ubah Password',
               subtitle: 'Atur password untuk login via email',
-              onTap: () => _showSnack('Fitur ubah password akan segera hadir'),
+              onTap: () async {
+                final ok = await showChangePasswordSheet(context);
+                if (ok == true && mounted) _showSnack('Password berhasil diubah');
+              },
             ),
             const _Divider(),
             _SwitchRow(

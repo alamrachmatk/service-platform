@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/models/order_model.dart';
+import '../../../../core/models/service_model.dart';
+import '../../../booking/presentation/screens/booking_screen.dart';
 import '../../../tracking/presentation/screens/tracking_screen.dart';
 import '../../../review/presentation/screens/review_screen.dart';
 import '../../../chat/presentation/screens/chat_screen.dart';
@@ -360,8 +363,18 @@ class _ActionButtons extends StatelessWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: () {
-                if (onSwitchToHome != null) {
-                  onSwitchToHome!();
+                // Pesan ulang: buka form booking untuk layanan yang sama
+                final matches =
+                    DummyServices.all.where((s) => s.id == order.serviceId);
+                if (matches.isNotEmpty) {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (_) => BookingScreen(
+                      service: matches.first,
+                      totalPrice: order.price,
+                    ),
+                  ));
+                } else if (onSwitchToHome != null) {
+                  onSwitchToHome!(); // layanan sudah tidak tersedia
                 } else {
                   Navigator.of(context).popUntil((route) => route.isFirst);
                 }
@@ -688,10 +701,13 @@ class _InvoiceSheet extends StatelessWidget {
           Row(children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () {
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  await Clipboard.setData(ClipboardData(text: invoiceId));
+                  if (!context.mounted) return;
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Invoice berhasil disalin'),
+                  messenger.showSnackBar(const SnackBar(
+                    content: Text('Nomor invoice disalin'),
                     behavior: SnackBarBehavior.floating,
                   ));
                 },
@@ -710,16 +726,31 @@ class _InvoiceSheet extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: ElevatedButton.icon(
-                onPressed: () {
+                onPressed: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final detail = [
+                    'INVOICE $invoiceId',
+                    'Layanan     : ${order.serviceName}',
+                    'Mitra       : ${order.mitraName}',
+                    'Tanggal     : ${order.formattedDate}',
+                    'ID Pesanan  : ${order.id}',
+                    'Subtotal    : ${_fmt(subtotal)}',
+                    'Pajak (11%) : ${_fmt(tax)}',
+                    'Biaya layanan: Rp 2.000',
+                    'TOTAL       : ${_fmt(order.price + 2000)}',
+                    'Status      : LUNAS',
+                  ].join('\n');
+                  await Clipboard.setData(ClipboardData(text: detail));
+                  if (!context.mounted) return;
                   Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                    content: Text('Invoice sedang diunduh...'),
+                  messenger.showSnackBar(const SnackBar(
+                    content: Text('Rincian invoice disalin'),
                     backgroundColor: AppColors.success,
                     behavior: SnackBarBehavior.floating,
                   ));
                 },
-                icon: const Icon(Icons.download_rounded, size: 15),
-                label: const Text('Unduh PDF',
+                icon: const Icon(Icons.content_copy_rounded, size: 15),
+                label: const Text('Salin Rincian',
                     style: TextStyle(fontWeight: FontWeight.w700)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
